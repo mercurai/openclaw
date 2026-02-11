@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { createSubsystemLogger } from "../../logging/subsystem.js";
 import type { PluginRegistry } from "../../plugins/registry.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -29,7 +30,9 @@ export function createGatewayPluginRequestHandler(params: {
           await route.handler(req, res);
           return true;
         } catch (err) {
-          log.warn(`plugin http route failed (${route.pluginId ?? "unknown"}): ${String(err)}`);
+          log.warn(
+            `plugin http route failed (${route.pluginId ?? "unknown"}): ${formatErrorForLog(err)}`,
+          );
           if (!res.headersSent) {
             res.statusCode = 500;
             res.setHeader("Content-Type", "text/plain; charset=utf-8");
@@ -47,7 +50,7 @@ export function createGatewayPluginRequestHandler(params: {
           return true;
         }
       } catch (err) {
-        log.warn(`plugin http handler failed (${entry.pluginId}): ${String(err)}`);
+        log.warn(`plugin http handler failed (${entry.pluginId}): ${formatErrorForLog(err)}`);
         if (!res.headersSent) {
           res.statusCode = 500;
           res.setHeader("Content-Type", "text/plain; charset=utf-8");

@@ -16,6 +16,7 @@ import {
 } from "../hooks/internal-hooks.js";
 import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
 import { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import {
@@ -121,7 +122,7 @@ export async function startGatewaySidecars(params: {
     try {
       await params.startChannels();
     } catch (err) {
-      params.logChannels.error(`channel startup failed: ${String(err)}`);
+      params.logChannels.error(`channel startup failed: ${formatErrorForLog(err)}`);
     }
   } else {
     params.logChannels.info(
@@ -148,11 +149,11 @@ export async function startGatewaySidecars(params: {
       workspaceDir: params.defaultWorkspaceDir,
     });
   } catch (err) {
-    params.log.warn(`plugin services failed to start: ${String(err)}`);
+    params.log.warn(`plugin services failed to start: ${formatErrorForLog(err)}`);
   }
 
   void startGatewayMemoryBackend({ cfg: params.cfg, log: params.log }).catch((err) => {
-    params.log.warn(`qmd memory startup initialization failed: ${String(err)}`);
+    params.log.warn(`qmd memory startup initialization failed: ${formatErrorForLog(err)}`);
   });
 
   if (shouldWakeFromRestartSentinel()) {

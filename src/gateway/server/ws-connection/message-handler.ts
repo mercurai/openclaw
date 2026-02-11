@@ -19,6 +19,7 @@ import {
   updatePairedDeviceMetadata,
   verifyDeviceToken,
 } from "../../../infra/device-pairing.js";
+import { GatewayError, formatErrorForLog, errorLogContext } from "../../../infra/errors/index.js";
 import { updatePairedNodeMetadata } from "../../../infra/node-pairing.js";
 import { recordRemoteNodeInfo, refreshRemoteNodeBins } from "../../../infra/skills-remote.js";
 import { upsertPresence } from "../../../infra/system-presence.js";
@@ -994,12 +995,14 @@ export function attachGatewayWsMessageHandler(params: {
           context: buildRequestContext(),
         });
       })().catch((err) => {
-        logGateway.error(`request handler failed: ${formatForLog(err)}`);
-        respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, formatForLog(err)));
+        const gatewayErr = GatewayError.requestFailed("gateway.request", err);
+        logGateway.error("request handler failed", errorLogContext(gatewayErr));
+        respond(false, undefined, gatewayErr.toErrorShape());
       });
     } catch (err) {
-      logGateway.error(`parse/handle error: ${String(err)}`);
-      logWs("out", "parse-error", { connId, error: formatForLog(err) });
+      const parseErr = GatewayError.parseFailed("request", err);
+      logGateway.error("parse/handle error", errorLogContext(parseErr));
+      logWs("out", "parse-error", { connId, error: formatErrorForLog(parseErr) });
       if (!getClient()) {
         close();
       }

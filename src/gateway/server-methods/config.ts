@@ -18,6 +18,7 @@ import {
   restoreRedactedValues,
 } from "../../config/redact-snapshot.js";
 import { buildConfigSchema } from "../../config/schema.js";
+import { ConfigError } from "../../infra/errors/index.js";
 import {
   formatDoctorNonInteractiveHint,
   type RestartSentinelPayload,
@@ -197,11 +198,8 @@ export const configHandlers: GatewayRequestHandlers = {
         snapshot.config,
       ) as typeof validated.config;
     } catch (err) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.INVALID_REQUEST, String(err instanceof Error ? err.message : err)),
-      );
+      const configErr = ConfigError.validationFailed("config restore", String(err));
+      respond(false, undefined, configErr.toErrorShape());
       return;
     }
     await writeConfigFile(restored);
@@ -273,11 +271,8 @@ export const configHandlers: GatewayRequestHandlers = {
     try {
       restoredMerge = restoreRedactedValues(merged, snapshot.config);
     } catch (err) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.INVALID_REQUEST, String(err instanceof Error ? err.message : err)),
-      );
+      const configErr = ConfigError.validationFailed("config merge restore", String(err));
+      respond(false, undefined, configErr.toErrorShape());
       return;
     }
     const migrated = applyLegacyMigrations(restoredMerge);
@@ -397,11 +392,8 @@ export const configHandlers: GatewayRequestHandlers = {
         snapshot.config,
       ) as typeof validated.config;
     } catch (err) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.INVALID_REQUEST, String(err instanceof Error ? err.message : err)),
-      );
+      const configErr = ConfigError.validationFailed("config apply restore", String(err));
+      respond(false, undefined, configErr.toErrorShape());
       return;
     }
     await writeConfigFile(restoredApply);

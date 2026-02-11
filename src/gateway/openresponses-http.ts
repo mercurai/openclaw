@@ -15,6 +15,7 @@ import { buildHistoryContextFromEntries, type HistoryEntry } from "../auto-reply
 import { createDefaultDeps } from "../cli/deps.js";
 import { agentCommand } from "../commands/agent.js";
 import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import {
   DEFAULT_INPUT_FILE_MAX_BYTES,
   DEFAULT_INPUT_FILE_MAX_CHARS,
@@ -452,7 +453,7 @@ export async function handleOpenResponsesHttpRequest(
     }
   } catch (err) {
     sendJson(res, 400, {
-      error: { message: String(err), type: "invalid_request_error" },
+      error: { message: formatErrorForLog(err), type: "invalid_request_error" },
     });
     return true;
   }
@@ -469,7 +470,7 @@ export async function handleOpenResponsesHttpRequest(
     toolChoicePrompt = toolChoiceResult.extraSystemPrompt;
   } catch (err) {
     sendJson(res, 400, {
-      error: { message: String(err), type: "invalid_request_error" },
+      error: { message: formatErrorForLog(err), type: "invalid_request_error" },
     });
     return true;
   }
@@ -588,7 +589,7 @@ export async function handleOpenResponsesHttpRequest(
         model,
         status: "failed",
         output: [],
-        error: { code: "api_error", message: String(err) },
+        error: { code: "api_error", message: formatErrorForLog(err) },
       });
       sendJson(res, 500, response);
     }

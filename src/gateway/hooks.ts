@@ -2,9 +2,8 @@ import type { IncomingMessage } from "node:http";
 import { randomUUID } from "node:crypto";
 import type { ChannelId } from "../channels/plugins/types.js";
 import type { OpenClawConfig } from "../config/config.js";
-import { listAgentIds, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { listChannelPlugins } from "../channels/plugins/index.js";
-import { normalizeAgentId } from "../routing/session-key.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 import { type HookMappingResolved, resolveHookMappings } from "./hooks-mapping.js";
 
@@ -16,13 +15,6 @@ export type HooksConfigResolved = {
   token: string;
   maxBodyBytes: number;
   mappings: HookMappingResolved[];
-  agentPolicy: HookAgentPolicyResolved;
-};
-
-export type HookAgentPolicyResolved = {
-  defaultAgentId: string;
-  knownAgentIds: Set<string>;
-  allowedAgentIds?: Set<string>;
 };
 
 export function resolveHooksConfig(cfg: OpenClawConfig): HooksConfigResolved | null {
@@ -44,49 +36,12 @@ export function resolveHooksConfig(cfg: OpenClawConfig): HooksConfigResolved | n
       ? cfg.hooks.maxBodyBytes
       : DEFAULT_HOOKS_MAX_BODY_BYTES;
   const mappings = resolveHookMappings(cfg.hooks);
-  const defaultAgentId = resolveDefaultAgentId(cfg);
-  const knownAgentIds = resolveKnownAgentIds(cfg, defaultAgentId);
-  const allowedAgentIds = resolveAllowedAgentIds(cfg.hooks?.allowedAgentIds);
   return {
     basePath: trimmed,
     token,
     maxBodyBytes,
     mappings,
-    agentPolicy: {
-      defaultAgentId,
-      knownAgentIds,
-      allowedAgentIds,
-    },
   };
-}
-
-function resolveKnownAgentIds(cfg: OpenClawConfig, defaultAgentId: string): Set<string> {
-  const known = new Set(listAgentIds(cfg));
-  known.add(defaultAgentId);
-  return known;
-}
-
-function resolveAllowedAgentIds(raw: string[] | undefined): Set<string> | undefined {
-  if (!Array.isArray(raw)) {
-    return undefined;
-  }
-  const allowed = new Set<string>();
-  let hasWildcard = false;
-  for (const entry of raw) {
-    const trimmed = entry.trim();
-    if (!trimmed) {
-      continue;
-    }
-    if (trimmed === "*") {
-      hasWildcard = true;
-      break;
-    }
-    allowed.add(normalizeAgentId(trimmed));
-  }
-  if (hasWildcard) {
-    return undefined;
-  }
-  return allowed;
 }
 
 export function extractHookToken(req: IncomingMessage): string | undefined {
@@ -143,7 +98,7 @@ export async function readJsonBody(
         const parsed = JSON.parse(raw) as unknown;
         resolve({ ok: true, value: parsed });
       } catch (err) {
-        resolve({ ok: false, error: String(err) });
+        resolve({ ok: false, error: formatErrorForLog(err) });
       }
     });
     req.on("error", (err) => {
@@ -151,7 +106,7 @@ export async function readJsonBody(
         return;
       }
       done = true;
-      resolve({ ok: false, error: String(err) });
+      resolve({ ok: false, error: formatErrorForLog(err) });
     });
   });
 }
@@ -184,7 +139,6 @@ export function normalizeWakePayload(
 export type HookAgentPayload = {
   message: string;
   name: string;
-  agentId?: string;
   wakeMode: "now" | "next-heartbeat";
   sessionKey: string;
   deliver: boolean;
@@ -220,40 +174,6 @@ export function resolveHookDeliver(raw: unknown): boolean {
   return raw !== false;
 }
 
-export function resolveHookTargetAgentId(
-  hooksConfig: HooksConfigResolved,
-  agentId: string | undefined,
-): string | undefined {
-  const raw = agentId?.trim();
-  if (!raw) {
-    return undefined;
-  }
-  const normalized = normalizeAgentId(raw);
-  if (hooksConfig.agentPolicy.knownAgentIds.has(normalized)) {
-    return normalized;
-  }
-  return hooksConfig.agentPolicy.defaultAgentId;
-}
-
-export function isHookAgentAllowed(
-  hooksConfig: HooksConfigResolved,
-  agentId: string | undefined,
-): boolean {
-  // Keep backwards compatibility for callers that omit agentId.
-  const raw = agentId?.trim();
-  if (!raw) {
-    return true;
-  }
-  const allowed = hooksConfig.agentPolicy.allowedAgentIds;
-  if (allowed === undefined) {
-    return true;
-  }
-  const resolved = resolveHookTargetAgentId(hooksConfig, raw);
-  return resolved ? allowed.has(resolved) : false;
-}
-
-export const getHookAgentPolicyError = () => "agentId is not allowed by hooks.allowedAgentIds";
-
 export function normalizeAgentPayload(
   payload: Record<string, unknown>,
   opts?: { idFactory?: () => string },
@@ -269,9 +189,6 @@ export function normalizeAgentPayload(
   }
   const nameRaw = payload.name;
   const name = typeof nameRaw === "string" && nameRaw.trim() ? nameRaw.trim() : "Hook";
-  const agentIdRaw = payload.agentId;
-  const agentId =
-    typeof agentIdRaw === "string" && agentIdRaw.trim() ? agentIdRaw.trim() : undefined;
   const wakeMode = payload.wakeMode === "next-heartbeat" ? "next-heartbeat" : "now";
   const sessionKeyRaw = payload.sessionKey;
   const idFactory = opts?.idFactory ?? randomUUID;
@@ -304,7 +221,6 @@ export function normalizeAgentPayload(
     value: {
       message,
       name,
-      agentId,
       wakeMode,
       sessionKey,
       deliver,

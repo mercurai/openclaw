@@ -5,6 +5,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { agentCommand } from "../commands/agent.js";
 import { resolveMainSessionKey } from "../config/sessions/main-session.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { type RuntimeEnv, defaultRuntime } from "../runtime.js";
 
@@ -64,7 +65,7 @@ export async function runBootOnce(params: {
   try {
     result = await loadBootFile(params.workspaceDir);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     log.error(`boot: failed to read ${BOOT_FILENAME}: ${message}`);
     return { status: "failed", reason: message };
   }
@@ -88,7 +89,7 @@ export async function runBootOnce(params: {
     );
     return { status: "ran" };
   } catch (err) {
-    const messageText = err instanceof Error ? err.message : String(err);
+    const messageText = formatErrorForUser(err);
     log.error(`boot: agent run failed: ${messageText}`);
     return { status: "failed", reason: messageText };
   }
