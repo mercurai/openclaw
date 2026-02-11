@@ -14,6 +14,7 @@ import {
 import { loadSessionStore, resolveStorePath, updateSessionStore } from "../../config/sessions.js";
 import { callGateway } from "../../gateway/call.js";
 import { logVerbose } from "../../globals.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { formatDurationCompact } from "../../infra/format-time/format-duration.ts";
 import { formatTimeAgo } from "../../infra/format-time/format-relative.ts";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
@@ -383,8 +384,7 @@ export const handleSubagentsCommand: CommandHandler = async (params, allowTextCo
         runId = responseRunId;
       }
     } catch (err) {
-      const messageText =
-        err instanceof Error ? err.message : typeof err === "string" ? err : "error";
+      const messageText = formatErrorForUser(err);
       return { shouldContinue: false, reply: { text: `⚠️ Send failed: ${messageText}` } };
     }
 

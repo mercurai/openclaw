@@ -1,3 +1,4 @@
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { diagnosticLogger as diag, logLaneDequeue, logLaneEnqueue } from "../logging/diagnostic.js";
 import { CommandLane } from "./lanes.js";
 
@@ -75,7 +76,7 @@ function drainLane(lane: string) {
           const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
           if (!isProbeLane) {
             diag.error(
-              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"`,
+              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${formatErrorForLog(err)}"`,
             );
           }
           pump();

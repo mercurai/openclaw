@@ -1,6 +1,7 @@
 import type { RuntimeEnv } from "../runtime.js";
 import { detectBinary } from "../commands/onboard-helpers.js";
 import { loadConfig } from "../config/config.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { createIMessageRpcClient } from "./client.js";
 import { DEFAULT_IMESSAGE_PROBE_TIMEOUT_MS } from "./constants.js";
@@ -56,7 +57,7 @@ async function probeRpcSupport(cliPath: string, timeoutMs: number): Promise<RpcS
       error: combined || `imsg rpc --help failed (code ${String(result.code ?? "unknown")})`,
     };
   } catch (err) {
-    return { supported: false, error: String(err) };
+    return { supported: false, error: formatErrorForLog(err) };
   }
 }
 
@@ -99,7 +100,7 @@ export async function probeIMessage(
     await client.request("chats.list", { limit: 1 }, { timeoutMs: effectiveTimeout });
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   } finally {
     await client.stop();
   }

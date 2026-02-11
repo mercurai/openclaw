@@ -1,3 +1,4 @@
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 import { makeProxyFetch } from "./proxy.js";
 
@@ -94,7 +95,7 @@ export async function probeTelegram(
     return {
       ...result,
       status: err instanceof Response ? err.status : result.status,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
       elapsedMs: Date.now() - started,
     };
   }

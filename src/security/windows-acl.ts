@@ -1,4 +1,5 @@
 import os from "node:os";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { runExec } from "../process/exec.js";
 
 export type ExecFn = typeof runExec;
@@ -182,7 +183,7 @@ export async function inspectWindowsAcl(
       trusted: [],
       untrustedWorld: [],
       untrustedGroup: [],
-      error: String(err),
+      error: formatErrorForLog(err),
     };
   }
 }

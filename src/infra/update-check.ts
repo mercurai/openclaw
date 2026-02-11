@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
+import { formatErrorForLog } from "./errors/index.js";
 import { parseSemver } from "./runtime-guard.js";
 import { channelToNpmTag, type UpdateChannel } from "./update-channels.js";
 
@@ -318,7 +319,7 @@ export async function fetchNpmTagVersion(params: {
     const version = typeof json?.version === "string" ? json.version : null;
     return { tag, version };
   } catch (err) {
-    return { tag, version: null, error: String(err) };
+    return { tag, version: null, error: formatErrorForLog(err) };
   }
 }
 

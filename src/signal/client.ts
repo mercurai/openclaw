@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { ChannelError, formatErrorForUser, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { resolveFetch } from "../infra/fetch.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 
@@ -31,7 +32,9 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 function normalizeBaseUrl(url: string): string {
   const trimmed = url.trim();
   if (!trimmed) {
-    throw new Error("Signal base URL is required");
+    throw new ChannelError("Signal base URL is required", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal" },
+    });
   }
   if (/^https?:\/\//i.test(trimmed)) {
     return trimmed.replace(/\/+$/, "");
@@ -75,13 +78,21 @@ export async function signalRpcRequest<T = unknown>(
   }
   const text = await res.text();
   if (!text) {
-    throw new Error(`Signal RPC empty response (status ${res.status})`);
+    throw new ChannelError(
+      `Signal RPC empty response (status ${res.status})`,
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", status: res.status },
+      },
+    );
   }
   const parsed = JSON.parse(text) as SignalRpcResponse<T>;
   if (parsed.error) {
     const code = parsed.error.code ?? "unknown";
     const msg = parsed.error.message ?? "Signal RPC error";
-    throw new Error(`Signal RPC ${code}: ${msg}`);
+    throw new ChannelError(`Signal RPC ${code}: ${msg}`, OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal", rpcErrorCode: code, rpcError: msg },
+    });
   }
   return parsed.result as T;
 }
@@ -106,7 +117,7 @@ export async function signalCheck(
     return {
       ok: false,
       status: null,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
     };
   }
 }
@@ -125,7 +136,9 @@ export async function streamSignalEvents(params: {
 
   const fetchImpl = resolveFetch();
   if (!fetchImpl) {
-    throw new Error("fetch is not available");
+    throw new ChannelError("fetch is not available", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal" },
+    });
   }
   const res = await fetchImpl(url, {
     method: "GET",
@@ -133,7 +146,13 @@ export async function streamSignalEvents(params: {
     signal: params.abortSignal,
   });
   if (!res.ok || !res.body) {
-    throw new Error(`Signal SSE failed (${res.status} ${res.statusText || "error"})`);
+    throw new ChannelError(
+      `Signal SSE failed (${res.status} ${res.statusText || "error"})`,
+      OpenClawErrorCodes.CHANNEL_CONNECTION_LOST,
+      {
+        context: { channel: "signal", status: res.status, statusText: res.statusText },
+      },
+    );
   }
 
   const reader = res.body.getReader();

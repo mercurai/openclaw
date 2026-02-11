@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import process from "node:process";
+import { formatErrorForLog } from "../infra/errors/index.js";
 
 declare const __OPENCLAW_VERSION__: string | undefined;
 
@@ -74,9 +75,6 @@ async function main() {
 }
 
 void main().catch((err) => {
-  console.error(
-    "[openclaw] Relay failed:",
-    err instanceof Error ? (err.stack ?? err.message) : err,
-  );
+  console.error("[openclaw] Relay failed:", formatErrorForLog(err));
   process.exit(1);
 });

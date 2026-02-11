@@ -6,6 +6,7 @@ import tls from "node:tls";
 import { promisify } from "node:util";
 import type { GatewayTlsConfig } from "../../config/types.gateway.js";
 import { CONFIG_DIR, ensureDir, resolveUserPath, shortenHomeInString } from "../../utils.js";
+import { formatErrorForLog } from "../errors/index.js";
 import { normalizeFingerprint } from "./fingerprint.js";
 
 const execFileAsync = promisify(execFile);
@@ -90,7 +91,7 @@ export async function loadGatewayTlsRuntime(
         required: true,
         certPath,
         keyPath,
-        error: `gateway tls: failed to generate cert (${String(err)})`,
+        error: `gateway tls: failed to generate cert (${formatErrorForLog(err)})`,
       };
     }
   }
@@ -144,7 +145,7 @@ export async function loadGatewayTlsRuntime(
       certPath,
       keyPath,
       caPath,
-      error: `gateway tls: failed to load cert (${String(err)})`,
+      error: `gateway tls: failed to load cert (${formatErrorForLog(err)})`,
     };
   }
 }

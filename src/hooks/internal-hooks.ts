@@ -7,6 +7,7 @@
 
 import type { WorkspaceBootstrapFile } from "../agents/workspace.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { PluginError, errorLogContext } from "../infra/errors/index.js";
 
 export type InternalHookEventType = "command" | "session" | "agent" | "gateway";
 
@@ -134,10 +135,9 @@ export async function triggerInternalHook(event: InternalHookEvent): Promise<voi
     try {
       await handler(event);
     } catch (err) {
-      console.error(
-        `Hook error [${event.type}:${event.action}]:`,
-        err instanceof Error ? err.message : String(err),
-      );
+      const hookName = `${event.type}:${event.action}`;
+      const pluginErr = PluginError.hookFailed("internal", hookName, err);
+      console.error(`Hook error [${hookName}]`, errorLogContext(pluginErr));
     }
   }
 }

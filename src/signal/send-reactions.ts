@@ -3,6 +3,7 @@
  */
 
 import { loadConfig } from "../config/config.js";
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { resolveSignalAccount } from "./accounts.js";
 import { signalRpcRequest } from "./client.js";
 
@@ -75,7 +76,9 @@ function resolveReactionRpcContext(
       : undefined);
   const baseUrl = opts.baseUrl?.trim() || resolvedAccount?.baseUrl;
   if (!baseUrl) {
-    throw new Error("Signal base URL is required");
+    throw new ChannelError("Signal base URL is required", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal" },
+    });
   }
   const account = opts.account?.trim() || resolvedAccount?.config.account?.trim();
   return { baseUrl, account };
@@ -103,13 +106,31 @@ export async function sendReactionSignal(
   const normalizedRecipient = normalizeSignalUuid(recipient);
   const groupId = opts.groupId?.trim();
   if (!normalizedRecipient && !groupId) {
-    throw new Error("Recipient or groupId is required for Signal reaction");
+    throw new ChannelError(
+      "Recipient or groupId is required for Signal reaction",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", recipient, groupId },
+      },
+    );
   }
   if (!Number.isFinite(targetTimestamp) || targetTimestamp <= 0) {
-    throw new Error("Valid targetTimestamp is required for Signal reaction");
+    throw new ChannelError(
+      "Valid targetTimestamp is required for Signal reaction",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", targetTimestamp },
+      },
+    );
   }
   if (!emoji?.trim()) {
-    throw new Error("Emoji is required for Signal reaction");
+    throw new ChannelError(
+      "Emoji is required for Signal reaction",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", emoji },
+      },
+    );
   }
 
   const targetAuthorParams = resolveTargetAuthorParams({
@@ -118,7 +139,13 @@ export async function sendReactionSignal(
     fallback: normalizedRecipient,
   });
   if (groupId && !targetAuthorParams.targetAuthor) {
-    throw new Error("targetAuthor is required for group reactions");
+    throw new ChannelError(
+      "targetAuthor is required for group reactions",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", groupId },
+      },
+    );
   }
 
   const params: Record<string, unknown> = {
@@ -169,13 +196,31 @@ export async function removeReactionSignal(
   const normalizedRecipient = normalizeSignalUuid(recipient);
   const groupId = opts.groupId?.trim();
   if (!normalizedRecipient && !groupId) {
-    throw new Error("Recipient or groupId is required for Signal reaction removal");
+    throw new ChannelError(
+      "Recipient or groupId is required for Signal reaction removal",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", recipient, groupId },
+      },
+    );
   }
   if (!Number.isFinite(targetTimestamp) || targetTimestamp <= 0) {
-    throw new Error("Valid targetTimestamp is required for Signal reaction removal");
+    throw new ChannelError(
+      "Valid targetTimestamp is required for Signal reaction removal",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", targetTimestamp },
+      },
+    );
   }
   if (!emoji?.trim()) {
-    throw new Error("Emoji is required for Signal reaction removal");
+    throw new ChannelError(
+      "Emoji is required for Signal reaction removal",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", emoji },
+      },
+    );
   }
 
   const targetAuthorParams = resolveTargetAuthorParams({
@@ -184,7 +229,13 @@ export async function removeReactionSignal(
     fallback: normalizedRecipient,
   });
   if (groupId && !targetAuthorParams.targetAuthor) {
-    throw new Error("targetAuthor is required for group reaction removal");
+    throw new ChannelError(
+      "targetAuthor is required for group reaction removal",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", groupId },
+      },
+    );
   }
 
   const params: Record<string, unknown> = {

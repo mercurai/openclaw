@@ -1,5 +1,6 @@
 import type { startGatewayServer } from "../../gateway/server.js";
 import type { defaultRuntime } from "../../runtime.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { acquireGatewayLock } from "../../infra/gateway-lock.js";
 import {
   consumeGatewaySigusr1RestartAuthorization,
@@ -48,7 +49,7 @@ export async function runGatewayLoop(params: {
           restartExpectedMs: isRestart ? 1500 : null,
         });
       } catch (err) {
-        gatewayLog.error(`shutdown error: ${String(err)}`);
+        gatewayLog.error(`shutdown error: ${formatErrorForLog(err)}`);
       } finally {
         clearTimeout(forceExitTimer);
         server = null;

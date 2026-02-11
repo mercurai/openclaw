@@ -26,6 +26,8 @@ import {
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { emitAgentEvent, registerAgentRunContext } from "../../infra/agent-events.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import {
   isMarkdownCapableMessageChannel,
@@ -228,7 +230,7 @@ export async function runAgentTurnWithFallback(params: {
                     phase: "error",
                     startedAt,
                     endedAt: Date.now(),
-                    error: String(err),
+                    error: formatErrorForLog(err),
                   },
                 });
                 lifecycleTerminalEmitted = true;
@@ -501,7 +503,7 @@ export async function runAgentTurnWithFallback(params: {
 
       break;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = formatErrorForUser(err);
       const isContextOverflow = isLikelyContextOverflowError(message);
       const isCompactionFailure = isCompactionFailureError(message);
       const isSessionCorruption = /function call turn comes immediately after/i.test(message);

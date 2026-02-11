@@ -6,6 +6,7 @@ import type { HookMessageChannel, HooksConfigResolved } from "../hooks.js";
 import { loadConfig } from "../../config/config.js";
 import { resolveMainSessionKeyFromConfig } from "../../config/sessions.js";
 import { runCronIsolatedAgentTurn } from "../../cron/isolated-agent.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { requestHeartbeatNow } from "../../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { createHooksRequestHandler } from "../server-http.js";
@@ -91,7 +92,7 @@ export function createGatewayHooksRequestHandler(params: {
           requestHeartbeatNow({ reason: `hook:${jobId}` });
         }
       } catch (err) {
-        logHooks.warn(`hook agent failed: ${String(err)}`);
+        logHooks.warn(`hook agent failed: ${formatErrorForLog(err)}`);
         enqueueSystemEvent(`Hook ${value.name} (error): ${String(err)}`, {
           sessionKey: mainSessionKey,
         });

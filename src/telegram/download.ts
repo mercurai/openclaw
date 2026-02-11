@@ -1,3 +1,4 @@
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { detectMime } from "../media/mime.js";
 import { type SavedMedia, saveMediaBuffer } from "../media/store.js";
 
@@ -18,11 +19,23 @@ export async function getTelegramFile(
     { signal: AbortSignal.timeout(timeoutMs) },
   );
   if (!res.ok) {
-    throw new Error(`getFile failed: ${res.status} ${res.statusText}`);
+    throw new ChannelError(
+      `getFile failed: ${res.status} ${res.statusText}`,
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "telegram", operation: "getFile", status: res.status, fileId },
+      },
+    );
   }
   const json = (await res.json()) as { ok: boolean; result?: TelegramFileInfo };
   if (!json.ok || !json.result?.file_path) {
-    throw new Error("getFile returned no file_path");
+    throw new ChannelError(
+      "getFile returned no file_path",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "telegram", operation: "getFile", fileId },
+      },
+    );
   }
   return json.result;
 }
@@ -34,12 +47,25 @@ export async function downloadTelegramFile(
   timeoutMs = 60_000,
 ): Promise<SavedMedia> {
   if (!info.file_path) {
-    throw new Error("file_path missing");
+    throw new ChannelError("file_path missing", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "telegram", operation: "downloadFile", fileId: info.file_id },
+    });
   }
   const url = `https://api.telegram.org/file/bot${token}/${info.file_path}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok || !res.body) {
-    throw new Error(`Failed to download telegram file: HTTP ${res.status}`);
+    throw new ChannelError(
+      `Failed to download telegram file: HTTP ${res.status}`,
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: {
+          channel: "telegram",
+          operation: "downloadFile",
+          filePath: info.file_path,
+          status: res.status,
+        },
+      },
+    );
   }
   const array = Buffer.from(await res.arrayBuffer());
   const mime = await detectMime({

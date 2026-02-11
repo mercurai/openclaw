@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { LookupFn, SsrFPolicy } from "../infra/net/ssrf.js";
+import { OpenClawError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
 import { detectMime, extensionForMime } from "./mime.js";
 
@@ -11,12 +12,16 @@ type FetchMediaResult = {
 
 export type MediaFetchErrorCode = "max_bytes" | "http_error" | "fetch_failed";
 
-export class MediaFetchError extends Error {
-  readonly code: MediaFetchErrorCode;
+export class MediaFetchError extends OpenClawError {
+  readonly mediaErrorCode: MediaFetchErrorCode;
 
-  constructor(code: MediaFetchErrorCode, message: string) {
-    super(message);
-    this.code = code;
+  constructor(code: MediaFetchErrorCode, message: string, cause?: unknown) {
+    super(message, {
+      code: OpenClawErrorCodes.TOOL_EXECUTION_FAILED,
+      cause,
+      context: { errorType: "media-fetch", mediaErrorCode: code },
+    });
+    this.mediaErrorCode = code;
     this.name = "MediaFetchError";
   }
 }

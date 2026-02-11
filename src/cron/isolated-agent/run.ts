@@ -47,6 +47,7 @@ import {
   updateSessionStore,
 } from "../../config/sessions.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
 import { logWarn } from "../../logger.js";
@@ -429,7 +430,7 @@ export async function runCronIsolatedAgentTurn(params: {
     fallbackModel = fallbackResult.model;
     runEndedAt = Date.now();
   } catch (err) {
-    return withRunSession({ status: "error", error: String(err) });
+    return withRunSession({ status: "error", error: formatErrorForLog(err) });
   }
 
   const payloads = runResult.payloads ?? [];
@@ -537,7 +538,12 @@ export async function runCronIsolatedAgentTurn(params: {
         });
       } catch (err) {
         if (!deliveryBestEffort) {
-          return withRunSession({ status: "error", summary, outputText, error: String(err) });
+          return withRunSession({
+            status: "error",
+            summary,
+            outputText,
+            error: formatErrorForLog(err),
+          });
         }
       }
     } else if (synthesizedText) {
@@ -585,7 +591,12 @@ export async function runCronIsolatedAgentTurn(params: {
         }
       } catch (err) {
         if (!deliveryBestEffort) {
-          return withRunSession({ status: "error", summary, outputText, error: String(err) });
+          return withRunSession({
+            status: "error",
+            summary,
+            outputText,
+            error: formatErrorForLog(err),
+          });
         }
         logWarn(`[cron:${params.job.id}] ${String(err)}`);
       }

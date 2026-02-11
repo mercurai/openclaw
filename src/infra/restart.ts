@@ -3,6 +3,7 @@ import {
   resolveGatewayLaunchAgentLabel,
   resolveGatewaySystemdServiceName,
 } from "../daemon/constants.js";
+import { formatErrorForUser } from "./errors/index.js";
 
 export type RestartAttempt = {
   ok: boolean;
@@ -69,17 +70,7 @@ function formatSpawnDetail(result: {
     return text.replace(/\s+/g, " ").trim();
   };
   if (result.error) {
-    if (result.error instanceof Error) {
-      return result.error.message;
-    }
-    if (typeof result.error === "string") {
-      return result.error;
-    }
-    try {
-      return JSON.stringify(result.error);
-    } catch {
-      return "unknown error";
-    }
+    return formatErrorForUser(result.error);
   }
   const stderr = clean(result.stderr);
   if (stderr) {

@@ -32,6 +32,7 @@ import {
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
 import { normalizeChannelId } from "../channels/plugins/index.js";
 import { logVerbose } from "../globals.js";
+import { OpenClawError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { isVoiceCompatibleAudio } from "../media/audio.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
 
@@ -528,7 +529,9 @@ function normalizeElevenLabsBaseUrl(baseUrl: string): string {
 
 function requireInRange(value: number, min: number, max: number, label: string): void {
   if (!Number.isFinite(value) || value < min || value > max) {
-    throw new Error(`${label} must be between ${min} and ${max}`);
+    throw new OpenClawError(`${label} must be between ${min} and ${max}`, {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
 }
 
@@ -546,7 +549,9 @@ function normalizeLanguageCode(code?: string): string | undefined {
   }
   const normalized = trimmed.toLowerCase();
   if (!/^[a-z]{2}$/.test(normalized)) {
-    throw new Error("languageCode must be a 2-letter ISO 639-1 code (e.g. en, de, fr)");
+    throw new OpenClawError("languageCode must be a 2-letter ISO 639-1 code (e.g. en, de, fr)", {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
   return normalized;
 }
@@ -560,7 +565,9 @@ function normalizeApplyTextNormalization(mode?: string): "auto" | "on" | "off" |
   if (normalized === "auto" || normalized === "on" || normalized === "off") {
     return normalized;
   }
-  throw new Error("applyTextNormalization must be one of: auto, on, off");
+  throw new OpenClawError("applyTextNormalization must be one of: auto, on, off", {
+    code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+  });
 }
 
 function normalizeSeed(seed?: number): number | undefined {
@@ -569,7 +576,9 @@ function normalizeSeed(seed?: number): number | undefined {
   }
   const next = Math.floor(seed);
   if (!Number.isFinite(next) || next < 0 || next > 4_294_967_295) {
-    throw new Error("seed must be between 0 and 4294967295");
+    throw new OpenClawError("seed must be between 0 and 4294967295", {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
   return next;
 }
@@ -915,14 +924,21 @@ async function summarizeText(params: {
 }): Promise<SummarizeResult> {
   const { text, targetLength, cfg, config, timeoutMs } = params;
   if (targetLength < 100 || targetLength > 10_000) {
-    throw new Error(`Invalid targetLength: ${targetLength}`);
+    throw new OpenClawError(`Invalid targetLength: ${targetLength}`, {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
 
   const startTime = Date.now();
   const { ref } = resolveSummaryModelRef(cfg, config);
   const resolved = resolveModel(ref.provider, ref.model, undefined, cfg);
   if (!resolved.model) {
-    throw new Error(resolved.error ?? `Unknown summary model: ${ref.provider}/${ref.model}`);
+    throw new OpenClawError(
+      resolved.error ?? `Unknown summary model: ${ref.provider}/${ref.model}`,
+      {
+        code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+      },
+    );
   }
   const apiKey = requireApiKey(
     await getApiKeyForModel({ model: resolved.model, cfg }),
@@ -965,7 +981,9 @@ async function summarizeText(params: {
         .trim();
 
       if (!summary) {
-        throw new Error("No summary returned");
+        throw new OpenClawError("No summary returned", {
+          code: OpenClawErrorCodes.TOOL_EXECUTION_FAILED,
+        });
       }
 
       return {
@@ -980,7 +998,10 @@ async function summarizeText(params: {
   } catch (err) {
     const error = err as Error;
     if (error.name === "AbortError") {
-      throw new Error("Summarization timed out", { cause: err });
+      throw new OpenClawError("Summarization timed out", {
+        code: OpenClawErrorCodes.TOOL_TIMEOUT,
+        cause: err,
+      });
     }
     throw err;
   }
@@ -1024,7 +1045,9 @@ async function elevenLabsTTS(params: {
     timeoutMs,
   } = params;
   if (!isValidVoiceId(voiceId)) {
-    throw new Error("Invalid voiceId format");
+    throw new OpenClawError("Invalid voiceId format", {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
   assertElevenLabsVoiceSettings(voiceSettings);
   const normalizedLanguage = normalizeLanguageCode(languageCode);
@@ -1065,7 +1088,9 @@ async function elevenLabsTTS(params: {
     });
 
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error (${response.status})`);
+      throw new OpenClawError(`ElevenLabs API error (${response.status})`, {
+        code: OpenClawErrorCodes.TOOL_EXECUTION_FAILED,
+      });
     }
 
     return Buffer.from(await response.arrayBuffer());
@@ -1085,10 +1110,14 @@ async function openaiTTS(params: {
   const { text, apiKey, model, voice, responseFormat, timeoutMs } = params;
 
   if (!isValidOpenAIModel(model)) {
-    throw new Error(`Invalid model: ${model}`);
+    throw new OpenClawError(`Invalid model: ${model}`, {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
   if (!isValidOpenAIVoice(voice)) {
-    throw new Error(`Invalid voice: ${voice}`);
+    throw new OpenClawError(`Invalid voice: ${voice}`, {
+      code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+    });
   }
 
   const controller = new AbortController();
@@ -1111,7 +1140,9 @@ async function openaiTTS(params: {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI TTS API error (${response.status})`);
+      throw new OpenClawError(`OpenAI TTS API error (${response.status})`, {
+        code: OpenClawErrorCodes.TOOL_EXECUTION_FAILED,
+      });
     }
 
     return Buffer.from(await response.arrayBuffer());

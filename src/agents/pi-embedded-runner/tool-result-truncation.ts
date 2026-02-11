@@ -1,6 +1,7 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { TextContent } from "@mariozechner/pi-ai";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { log } from "./logger.js";
 
 /**
@@ -256,7 +257,7 @@ export async function truncateOversizedToolResultsInSession(params: {
 
     return { truncated: true, truncatedCount };
   } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
+    const errMsg = formatErrorForUser(err);
     log.warn(`[tool-result-truncation] Failed to truncate: ${errMsg}`);
     return { truncated: false, truncatedCount: 0, reason: errMsg };
   }

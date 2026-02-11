@@ -9,6 +9,7 @@ import { type WebSocket, WebSocketServer } from "ws";
 import type { RuntimeEnv } from "../runtime.js";
 import { STATE_DIR } from "../config/paths.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { SafeOpenError, openFileWithinRoot } from "../infra/fs-safe.js";
 import { detectMime } from "../media/mime.js";
 import { ensureDir, resolveUserPath } from "../utils.js";
@@ -407,7 +408,7 @@ export async function createCanvasHostHandler(
       res.end(data);
       return true;
     } catch (err) {
-      opts.runtime.error(`canvasHost request failed: ${String(err)}`);
+      opts.runtime.error(`canvasHost request failed: ${formatErrorForLog(err)}`);
       res.statusCode = 500;
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
       res.end("error");

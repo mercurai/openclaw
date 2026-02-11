@@ -1,6 +1,7 @@
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { OpenClawPluginToolContext } from "./types.js";
 import { normalizeToolName } from "../agents/tool-policy.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadOpenClawPlugins } from "./loader.js";
 
@@ -83,7 +84,7 @@ export function resolvePluginTools(params: {
     try {
       resolved = entry.factory(params.context);
     } catch (err) {
-      log.error(`plugin tool failed (${entry.pluginId}): ${String(err)}`);
+      log.error(`plugin tool failed (${entry.pluginId}): ${formatErrorForLog(err)}`);
       continue;
     }
     if (!resolved) {

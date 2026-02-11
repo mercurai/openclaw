@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { setTimeout as delay } from "node:timers/promises";
 import { buildGatewayConnectionDetails } from "../gateway/call.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { parseLogLine } from "../logging/parse-log-line.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { clearActiveProgressLine } from "../terminal/progress-line.js";
@@ -152,7 +153,7 @@ function emitGatewayError(
   const details = buildGatewayConnectionDetails({ url: opts.url });
   const message = "Gateway not reachable. Is it running and accessible?";
   const hint = `Hint: run \`${formatCliCommand("openclaw doctor")}\`.`;
-  const errorText = err instanceof Error ? err.message : String(err);
+  const errorText = formatErrorForUser(err);
 
   if (mode === "json") {
     if (

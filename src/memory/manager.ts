@@ -17,6 +17,12 @@ import type {
 import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
+import {
+  MemoryError,
+  formatErrorForUser,
+  formatErrorForLog,
+  errorLogContext,
+} from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
 import { resolveUserPath } from "../utils.js";
@@ -130,7 +136,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     timeoutMs: number;
   };
   private batchFailureCount = 0;
-  private batchFailureLastError?: string;
+  private batchFailureLastError?: MemoryError;
   private batchFailureLastProvider?: string;
   private batchFailureLock: Promise<void> = Promise.resolve();
   private db: DatabaseSync;
@@ -141,7 +147,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     enabled: boolean;
     available: boolean | null;
     extensionPath?: string;
-    loadError?: string;
+    loadError?: MemoryError;
     dims?: number;
   };
   private readonly fts: {
@@ -548,7 +554,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         enabled: this.vector.enabled,
         available: this.vector.available ?? undefined,
         extensionPath: this.vector.extensionPath,
-        loadError: this.vector.loadError,
+        loadError: this.vector.loadError ? formatErrorForUser(this.vector.loadError) : undefined,
         dims: this.vector.dims,
       },
       batch: {
@@ -559,7 +565,9 @@ export class MemoryIndexManager implements MemorySearchManager {
         concurrency: this.batch.concurrency,
         pollIntervalMs: this.batch.pollIntervalMs,
         timeoutMs: this.batch.timeoutMs,
-        lastError: this.batchFailureLastError,
+        lastError: this.batchFailureLastError
+          ? formatErrorForUser(this.batchFailureLastError)
+          : undefined,
         lastProvider: this.batchFailureLastProvider,
       },
     };
@@ -577,7 +585,7 @@ export class MemoryIndexManager implements MemorySearchManager {
       await this.embedBatchWithRetry(["ping"]);
       return { ok: true };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = formatErrorForUser(err);
       return { ok: false, error: message };
     }
   }
@@ -626,11 +634,11 @@ export class MemoryIndexManager implements MemorySearchManager {
     try {
       ready = await this.vectorReady;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const memErr = MemoryError.vectorUnavailable("main", err);
       this.vector.available = false;
-      this.vector.loadError = message;
+      this.vector.loadError = memErr;
       this.vectorReady = null;
-      log.warn(`sqlite-vec unavailable: ${message}`);
+      log.warn("sqlite-vec unavailable", errorLogContext(memErr));
       return false;
     }
     if (ready && typeof dimensions === "number" && dimensions > 0) {
@@ -659,10 +667,10 @@ export class MemoryIndexManager implements MemorySearchManager {
       this.vector.available = true;
       return true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const memErr = MemoryError.vectorUnavailable("extension", err);
       this.vector.available = false;
-      this.vector.loadError = message;
-      log.warn(`sqlite-vec unavailable: ${message}`);
+      this.vector.loadError = memErr;
+      log.warn("sqlite-vec unavailable", errorLogContext(memErr));
       return false;
     }
   }
@@ -687,7 +695,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     try {
       this.db.exec(`DROP TABLE IF EXISTS ${VECTOR_TABLE}`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = formatErrorForLog(err);
       log.debug(`Failed to drop ${VECTOR_TABLE}: ${message}`);
     }
   }
@@ -1322,7 +1330,8 @@ export class MemoryIndexManager implements MemorySearchManager {
         this.sessionsDirty = false;
       }
     } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
+      const memErr = MemoryError.embeddingFailed(this.provider.id, err);
+      const reason = formatErrorForUser(memErr);
       const activated =
         this.shouldFallbackOnError(reason) && (await this.activateFallbackProvider(reason));
       if (activated) {
@@ -1333,7 +1342,8 @@ export class MemoryIndexManager implements MemorySearchManager {
         });
         return;
       }
-      throw err;
+      log.error("memory sync embedding failed", errorLogContext(memErr));
+      throw memErr;
     }
   }
 
@@ -1647,7 +1657,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         content,
       };
     } catch (err) {
-      log.debug(`Failed reading session file ${absPath}: ${String(err)}`);
+      log.debug(`Failed reading session file ${absPath}: ${formatErrorForLog(err)}`);
       return null;
     }
   }
@@ -2138,9 +2148,11 @@ export class MemoryIndexManager implements MemorySearchManager {
           `memory embeddings batch timed out after ${Math.round(timeoutMs / 1000)}s`,
         );
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForLog(err);
         if (!this.isRetryableEmbeddingError(message) || attempt >= EMBEDDING_RETRY_MAX_ATTEMPTS) {
-          throw err;
+          const memErr = MemoryError.embeddingFailed(this.provider.id, err);
+          log.error("embedding batch failed after retries", errorLogContext(memErr));
+          throw memErr;
         }
         const waitMs = Math.min(
           EMBEDDING_RETRY_MAX_DELAY_MS,
@@ -2226,7 +2238,7 @@ export class MemoryIndexManager implements MemorySearchManager {
 
   private async recordBatchFailure(params: {
     provider: string;
-    message: string;
+    error: MemoryError;
     attempts?: number;
     forceDisable?: boolean;
   }): Promise<{ disabled: boolean; count: number }> {
@@ -2238,7 +2250,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         ? BATCH_FAILURE_LIMIT
         : Math.max(1, params.attempts ?? 1);
       this.batchFailureCount += increment;
-      this.batchFailureLastError = params.message;
+      this.batchFailureLastError = params.error;
       this.batchFailureLastProvider = params.provider;
       const disabled = params.forceDisable || this.batchFailureCount >= BATCH_FAILURE_LIMIT;
       if (disabled) {
@@ -2259,7 +2271,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     try {
       return await params.run();
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = formatErrorForLog(err);
       if (this.isBatchTimeoutError(message)) {
         log.warn(`memory embeddings: ${params.provider} batch timed out; retrying once`);
         try {
@@ -2289,18 +2301,20 @@ export class MemoryIndexManager implements MemorySearchManager {
       await this.resetBatchFailureCount();
       return result;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const memErr = MemoryError.embeddingFailed(params.provider, err);
+      const message = formatErrorForLog(memErr);
       const attempts = (err as { batchAttempts?: number }).batchAttempts ?? 1;
       const forceDisable = /asyncBatchEmbedContent not available/i.test(message);
       const failure = await this.recordBatchFailure({
         provider: params.provider,
-        message,
+        error: memErr,
         attempts,
         forceDisable,
       });
       const suffix = failure.disabled ? "disabling batch" : "keeping batch enabled";
       log.warn(
-        `memory embeddings: ${params.provider} batch failed (${failure.count}/${BATCH_FAILURE_LIMIT}); ${suffix}; falling back to non-batch embeddings: ${message}`,
+        `memory embeddings: ${params.provider} batch failed (${failure.count}/${BATCH_FAILURE_LIMIT}); ${suffix}; falling back to non-batch embeddings`,
+        errorLogContext(memErr),
       );
       return await params.fallback();
     }

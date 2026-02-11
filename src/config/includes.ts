@@ -13,6 +13,7 @@
 import JSON5 from "json5";
 import fs from "node:fs";
 import path from "node:path";
+import { ConfigError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { isPlainObject } from "../utils.js";
 
 export const INCLUDE_KEY = "$include";
@@ -31,13 +32,16 @@ export type IncludeResolver = {
 // Errors
 // ============================================================================
 
-export class ConfigIncludeError extends Error {
+export class ConfigIncludeError extends ConfigError {
   constructor(
     message: string,
     public readonly includePath: string,
-    public readonly cause?: Error,
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, OpenClawErrorCodes.CONFIG_LOAD_FAILED, {
+      cause,
+      context: { errorType: "include", includePath },
+    });
     this.name = "ConfigIncludeError";
   }
 }

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import WebSocket from "ws";
 import type { ResolvedBrowserConfig, ResolvedBrowserProfile } from "./config.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { ensurePortAvailable } from "../infra/ports.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { CONFIG_DIR } from "../utils.js";
@@ -266,14 +267,14 @@ export async function launchOpenClawChrome(
       });
       log.info(`🦞 openclaw browser profile decorated (${profile.color})`);
     } catch (err) {
-      log.warn(`openclaw browser profile decoration failed: ${String(err)}`);
+      log.warn(`openclaw browser profile decoration failed: ${formatErrorForLog(err)}`);
     }
   }
 
   try {
     ensureProfileCleanExit(userDataDir);
   } catch (err) {
-    log.warn(`openclaw browser clean-exit prefs failed: ${String(err)}`);
+    log.warn(`openclaw browser clean-exit prefs failed: ${formatErrorForLog(err)}`);
   }
 
   const proc = spawnOnce();

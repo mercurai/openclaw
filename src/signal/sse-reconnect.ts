@@ -2,6 +2,7 @@ import type { BackoffPolicy } from "../infra/backoff.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { computeBackoff, sleepWithAbort } from "../infra/backoff.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { type SignalSseEvent, streamSignalEvents } from "./client.js";
 
 const DEFAULT_RECONNECT_POLICY: BackoffPolicy = {
@@ -63,7 +64,7 @@ export async function runSignalSseLoop({
       if (abortSignal?.aborted) {
         return;
       }
-      runtime.error?.(`Signal SSE stream error: ${String(err)}`);
+      runtime.error?.(`Signal SSE stream error: ${formatErrorForLog(err)}`);
       reconnectAttempts += 1;
       const delayMs = computeBackoff(reconnectPolicy, reconnectAttempts);
       runtime.log?.(`Signal SSE connection lost, reconnecting in ${delayMs / 1000}s...`);

@@ -1,6 +1,7 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { PluginRegistry } from "./registry.js";
 import { STATE_DIR } from "../config/paths.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const log = createSubsystemLogger("plugins");
@@ -51,7 +52,7 @@ export async function startPluginServices(params: {
           : undefined,
       });
     } catch (err) {
-      log.error(`plugin service failed (${service.id}): ${String(err)}`);
+      log.error(`plugin service failed (${service.id}): ${formatErrorForLog(err)}`);
     }
   }
 
@@ -64,7 +65,7 @@ export async function startPluginServices(params: {
         try {
           await entry.stop();
         } catch (err) {
-          log.warn(`plugin service stop failed (${entry.id}): ${String(err)}`);
+          log.warn(`plugin service stop failed (${entry.id}): ${formatErrorForLog(err)}`);
         }
       }
     },

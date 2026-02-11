@@ -13,6 +13,7 @@ import { createBrowserRouteDispatcher } from "../browser/routes/dispatcher.js";
 import { loadConfig } from "../config/config.js";
 import { GatewayClient } from "../gateway/client.js";
 import { loadOrCreateDeviceIdentity } from "../infra/device-identity.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import {
   addAllowlistEntry,
   analyzeArgvCommand,
@@ -718,7 +719,7 @@ async function handleInvoke(
     } catch (err) {
       await sendInvokeResult(client, frame, {
         ok: false,
-        error: { code: "INVALID_REQUEST", message: String(err) },
+        error: { code: "INVALID_REQUEST", message: formatErrorForLog(err) },
       });
     }
     return;
@@ -739,7 +740,7 @@ async function handleInvoke(
     } catch (err) {
       await sendInvokeResult(client, frame, {
         ok: false,
-        error: { code: "INVALID_REQUEST", message: String(err) },
+        error: { code: "INVALID_REQUEST", message: formatErrorForLog(err) },
       });
     }
     return;
@@ -849,7 +850,7 @@ async function handleInvoke(
     } catch (err) {
       await sendInvokeResult(client, frame, {
         ok: false,
-        error: { code: "INVALID_REQUEST", message: String(err) },
+        error: { code: "INVALID_REQUEST", message: formatErrorForLog(err) },
       });
     }
     return;
@@ -869,7 +870,7 @@ async function handleInvoke(
   } catch (err) {
     await sendInvokeResult(client, frame, {
       ok: false,
-      error: { code: "INVALID_REQUEST", message: String(err) },
+      error: { code: "INVALID_REQUEST", message: formatErrorForLog(err) },
     });
     return;
   }

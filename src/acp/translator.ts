@@ -23,6 +23,7 @@ import { randomUUID } from "node:crypto";
 import type { GatewayClient } from "../gateway/client.js";
 import type { EventFrame } from "../gateway/protocol/index.js";
 import type { SessionsListResult } from "../gateway/session-utils.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { getAvailableCommands } from "./commands.js";
 import {
   extractAttachmentsFromPrompt,
@@ -218,7 +219,7 @@ export class AcpGatewayAgent implements Agent {
       });
       this.log(`setSessionMode: ${session.sessionId} -> ${params.modeId}`);
     } catch (err) {
-      this.log(`setSessionMode error: ${String(err)}`);
+      this.log(`setSessionMode error: ${formatErrorForLog(err)}`);
     }
     return {};
   }
@@ -284,7 +285,7 @@ export class AcpGatewayAgent implements Agent {
     try {
       await this.gateway.request("chat.abort", { sessionKey: session.sessionKey });
     } catch (err) {
-      this.log(`cancel error: ${String(err)}`);
+      this.log(`cancel error: ${formatErrorForLog(err)}`);
     }
 
     const pending = this.pendingPrompts.get(params.sessionId);

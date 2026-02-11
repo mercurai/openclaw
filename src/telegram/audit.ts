@@ -1,4 +1,5 @@
 import type { TelegramGroupConfig } from "../config/types.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { isRecord } from "../utils.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 import { makeProxyFetch } from "./proxy.js";
@@ -128,7 +129,7 @@ export async function auditTelegramGroupMembership(params: {
         chatId,
         ok: false,
         status: null,
-        error: err instanceof Error ? err.message : String(err),
+        error: formatErrorForUser(err),
         matchKey: chatId,
         matchSource: "id",
       });

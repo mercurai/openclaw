@@ -10,6 +10,7 @@ import {
   resolveInboundDebounceMs,
 } from "../../auto-reply/inbound-debounce.js";
 import { danger } from "../../globals.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { preflightDiscordMessage } from "./message-handler.preflight.js";
 import { processDiscordMessage } from "./message-handler.process.js";
 import { resolveDiscordMessageText } from "./message-utils.js";
@@ -132,7 +133,7 @@ export function createDiscordMessageHandler(params: {
       await processDiscordMessage(ctx);
     },
     onError: (err) => {
-      params.runtime.error?.(danger(`discord debounce flush failed: ${String(err)}`));
+      params.runtime.error?.(danger(`discord debounce flush failed: ${formatErrorForLog(err)}`));
     },
   });
 
@@ -140,7 +141,7 @@ export function createDiscordMessageHandler(params: {
     try {
       await debouncer.enqueue({ data, client });
     } catch (err) {
-      params.runtime.error?.(danger(`handler failed: ${String(err)}`));
+      params.runtime.error?.(danger(`handler failed: ${formatErrorForLog(err)}`));
     }
   };
 }

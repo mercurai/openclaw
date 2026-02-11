@@ -13,6 +13,7 @@ import type {
 } from "./types.js";
 import { resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { resolveStateDir } from "../config/paths.js";
+import { formatErrorForLog, toError } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { parseAgentSessionKey } from "../sessions/session-key-utils.js";
 import {
@@ -232,7 +233,7 @@ export class QmdMemoryManager implements MemorySearchManager {
           },
         );
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForLog(err);
         // Idempotency: qmd exits non-zero if the collection name already exists.
         if (message.toLowerCase().includes("already exists")) {
           continue;
@@ -273,14 +274,14 @@ export class QmdMemoryManager implements MemorySearchManager {
       const result = await this.runQmd(args, { timeoutMs: this.qmd.limits.timeoutMs });
       stdout = result.stdout;
     } catch (err) {
-      log.warn(`qmd query failed: ${String(err)}`);
-      throw err instanceof Error ? err : new Error(String(err));
+      log.warn(`qmd query failed: ${formatErrorForLog(err)}`);
+      throw toError(err);
     }
     let parsed: QmdQueryResult[] = [];
     try {
       parsed = JSON.parse(stdout);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = formatErrorForLog(err);
       log.warn(`qmd query returned invalid JSON: ${message}`);
       throw new Error(`qmd query returned invalid JSON: ${message}`, { cause: err });
     }
@@ -448,7 +449,7 @@ export class QmdMemoryManager implements MemorySearchManager {
           await this.runQmd(["embed"], { timeoutMs: this.qmd.update.embedTimeoutMs });
           this.lastEmbedAt = Date.now();
         } catch (err) {
-          log.warn(`qmd embed failed (${reason}): ${String(err)}`);
+          log.warn(`qmd embed failed (${reason}): ${formatErrorForLog(err)}`);
         }
       }
       this.lastUpdateAt = Date.now();
@@ -536,7 +537,7 @@ export class QmdMemoryManager implements MemorySearchManager {
       log.debug(`symlinked qmd models: ${defaultModelsDir} → ${targetModelsDir}`);
     } catch (err) {
       // Non-fatal: if we can't symlink, qmd will fall back to downloading
-      log.warn(`failed to symlink qmd models directory: ${String(err)}`);
+      log.warn(`failed to symlink qmd models directory: ${formatErrorForLog(err)}`);
     }
   }
 
@@ -670,7 +671,7 @@ export class QmdMemoryManager implements MemorySearchManager {
         .get(`${normalized}%`) as { collection: string; path: string } | undefined;
     } catch (err) {
       if (this.isSqliteBusyError(err)) {
-        log.debug(`qmd index is busy while resolving doc path: ${String(err)}`);
+        log.debug(`qmd index is busy while resolving doc path: ${formatErrorForLog(err)}`);
         throw this.createQmdBusyError(err);
       }
       throw err;
@@ -733,7 +734,7 @@ export class QmdMemoryManager implements MemorySearchManager {
         })),
       };
     } catch (err) {
-      log.warn(`failed to read qmd index stats: ${String(err)}`);
+      log.warn(`failed to read qmd index stats: ${formatErrorForLog(err)}`);
       return {
         totalDocuments: 0,
         sourceCounts: Array.from(this.sources).map((source) => ({ source, files: 0, chunks: 0 })),
@@ -960,13 +961,13 @@ export class QmdMemoryManager implements MemorySearchManager {
   }
 
   private isSqliteBusyError(err: unknown): boolean {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForLog(err);
     const normalized = message.toLowerCase();
     return normalized.includes("sqlite_busy") || normalized.includes("database is locked");
   }
 
   private createQmdBusyError(err: unknown): Error {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForLog(err);
     return new Error(`qmd index busy while reading results: ${message}`);
   }
 

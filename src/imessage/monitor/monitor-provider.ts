@@ -34,6 +34,7 @@ import {
 } from "../../config/group-policy.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../../config/sessions.js";
 import { danger, logVerbose, shouldLogVerbose } from "../../globals.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { waitForTransportReady } from "../../infra/transport-ready.js";
 import { mediaKindFromMime } from "../../media/constants.js";
 import { buildPairingReply } from "../../pairing/pairing-messages.js";
@@ -750,7 +751,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
     if (abort?.aborted) {
       return;
     }
-    runtime.error?.(danger(`imessage: monitor failed: ${String(err)}`));
+    runtime.error?.(danger(`imessage: monitor failed: ${formatErrorForLog(err)}`));
     throw err;
   } finally {
     abort?.removeEventListener("abort", onAbort);

@@ -1,5 +1,6 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ChatAttachment } from "../ui-types.ts";
+import { formatErrorForUser } from "../../../../src/infra/errors/index.js";
 import { extractText } from "../chat/message-extract.ts";
 import { generateUUID } from "../uuid.ts";
 
@@ -44,7 +45,7 @@ export async function loadChatHistory(state: ChatState) {
     state.chatMessages = Array.isArray(res.messages) ? res.messages : [];
     state.chatThinkingLevel = res.thinkingLevel ?? null;
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.chatLoading = false;
   }
@@ -163,7 +164,7 @@ export async function abortChatRun(state: ChatState): Promise<boolean> {
     );
     return true;
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
     return false;
   }
 }

@@ -1,4 +1,5 @@
 import type { DaemonStatusOptions } from "./types.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { colorize, isRich, theme } from "../../terminal/theme.js";
 import { gatherDaemonStatus } from "./status.gather.js";
@@ -14,7 +15,9 @@ export async function runDaemonStatus(opts: DaemonStatusOptions) {
     printDaemonStatus(status, { json: Boolean(opts.json) });
   } catch (err) {
     const rich = isRich();
-    defaultRuntime.error(colorize(rich, theme.error, `Gateway status failed: ${String(err)}`));
+    defaultRuntime.error(
+      colorize(rich, theme.error, `Gateway status failed: ${formatErrorForLog(err)}`),
+    );
     defaultRuntime.exit(1);
   }
 }

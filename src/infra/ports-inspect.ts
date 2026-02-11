@@ -2,6 +2,7 @@ import net from "node:net";
 import type { PortListener, PortUsage, PortUsageStatus } from "./ports-types.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { isErrno } from "./errors.js";
+import { formatErrorForLog } from "./errors/index.js";
 import { buildPortHints } from "./ports-format.js";
 import { resolveLsofCommand } from "./ports-lsof.js";
 
@@ -25,7 +26,7 @@ async function runCommandSafe(argv: string[], timeoutMs = 5_000): Promise<Comman
       stdout: "",
       stderr: "",
       code: 1,
-      error: String(err),
+      error: formatErrorForLog(err),
     };
   }
 }

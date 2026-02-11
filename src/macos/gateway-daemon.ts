@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import process from "node:process";
 import type { GatewayLockHandle } from "../infra/gateway-lock.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 
 declare const __OPENCLAW_VERSION__: string | undefined;
 
@@ -145,7 +146,7 @@ async function main() {
           restartExpectedMs: isRestart ? 1500 : null,
         });
       } catch (err) {
-        defaultRuntime.error(`gateway: shutdown error: ${String(err)}`);
+        defaultRuntime.error(`gateway: shutdown error: ${formatErrorForLog(err)}`);
       } finally {
         if (forceExitTimer) {
           clearTimeout(forceExitTimer);
@@ -202,7 +203,7 @@ async function main() {
         server = await startGatewayServer(port, { bind });
       } catch (err) {
         cleanupSignals();
-        defaultRuntime.error(`Gateway failed to start: ${String(err)}`);
+        defaultRuntime.error(`Gateway failed to start: ${formatErrorForLog(err)}`);
         process.exit(1);
       }
       await new Promise<void>((resolve) => {
@@ -216,9 +217,6 @@ async function main() {
 }
 
 void main().catch((err) => {
-  console.error(
-    "[openclaw] Gateway daemon failed:",
-    err instanceof Error ? (err.stack ?? err.message) : err,
-  );
+  console.error("[openclaw] Gateway daemon failed:", formatErrorForLog(err));
   process.exit(1);
 });

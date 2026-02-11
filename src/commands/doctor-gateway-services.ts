@@ -15,6 +15,7 @@ import {
   SERVICE_AUDIT_CODES,
 } from "../daemon/service-audit.js";
 import { resolveGatewayService } from "../daemon/service.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { note } from "../terminal/note.js";
 import { buildGatewayInstallPlan } from "./daemon-install-helpers.js";
 import { DEFAULT_GATEWAY_DAEMON_RUNTIME, type GatewayDaemonRuntime } from "./daemon-runtime.js";
@@ -205,7 +206,7 @@ export async function maybeRepairGatewayServiceConfig(
       environment,
     });
   } catch (err) {
-    runtime.error(`Gateway service update failed: ${String(err)}`);
+    runtime.error(`Gateway service update failed: ${formatErrorForLog(err)}`);
   }
 }
 

@@ -5,15 +5,18 @@ import { danger, info, shouldLogVerbose, warn } from "../globals.js";
 import { logDebug } from "../logger.js";
 import { defaultRuntime } from "../runtime.js";
 import { isErrno } from "./errors.js";
+import { ConfigError, OpenClawErrorCodes } from "./errors/index.js";
 import { formatPortDiagnostics } from "./ports-format.js";
 import { inspectPortUsage } from "./ports-inspect.js";
 
-class PortInUseError extends Error {
+class PortInUseError extends ConfigError {
   port: number;
   details?: string;
 
   constructor(port: number, details?: string) {
-    super(`Port ${port} is already in use.`);
+    super(`Port ${port} is already in use.`, OpenClawErrorCodes.CONFIG_VALIDATION_FAILED, {
+      context: { errorType: "port-in-use", port, details },
+    });
     this.name = "PortInUseError";
     this.port = port;
     this.details = details;

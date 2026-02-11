@@ -9,6 +9,7 @@ import {
   resolveArchiveKind,
   resolvePackedRootDir,
 } from "../infra/archive.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
 import { parseFrontmatter } from "./frontmatter.js";
@@ -158,14 +159,14 @@ async function installHookPackageFromDir(params: {
   try {
     manifest = await readJsonFile<HookPackageManifest>(manifestPath);
   } catch (err) {
-    return { ok: false, error: `invalid package.json: ${String(err)}` };
+    return { ok: false, error: `invalid package.json: ${formatErrorForLog(err)}` };
   }
 
   let hookEntries: string[];
   try {
     hookEntries = await ensureOpenClawHooks(manifest);
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   }
 
   const pkgName = typeof manifest.name === "string" ? manifest.name : "";
@@ -227,7 +228,7 @@ async function installHookPackageFromDir(params: {
       await fs.rm(targetDir, { recursive: true, force: true }).catch(() => undefined);
       await fs.rename(backupDir, targetDir).catch(() => undefined);
     }
-    return { ok: false, error: `failed to copy hook pack: ${String(err)}` };
+    return { ok: false, error: `failed to copy hook pack: ${formatErrorForLog(err)}` };
   }
 
   const deps = manifest.dependencies ?? {};
@@ -321,7 +322,7 @@ async function installHookFromDir(params: {
       await fs.rm(targetDir, { recursive: true, force: true }).catch(() => undefined);
       await fs.rename(backupDir, targetDir).catch(() => undefined);
     }
-    return { ok: false, error: `failed to copy hook: ${String(err)}` };
+    return { ok: false, error: `failed to copy hook: ${formatErrorForLog(err)}` };
   }
 
   if (backupDir) {
@@ -360,14 +361,14 @@ export async function installHooksFromArchive(params: {
   try {
     await extractArchive({ archivePath, destDir: extractDir, timeoutMs, logger });
   } catch (err) {
-    return { ok: false, error: `failed to extract archive: ${String(err)}` };
+    return { ok: false, error: `failed to extract archive: ${formatErrorForLog(err)}` };
   }
 
   let rootDir = "";
   try {
     rootDir = await resolvePackedRootDir(extractDir);
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   }
 
   const manifestPath = path.join(rootDir, "package.json");

@@ -2,6 +2,7 @@ import type { ImageContent } from "@mariozechner/pi-ai";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { formatErrorForUser } from "../../../infra/errors/index.js";
 import { extractTextFromMessage } from "../../../tui/tui-formatters.js";
 import { resolveUserPath } from "../../../utils.js";
 import { loadWebMedia } from "../../../web/media.js";
@@ -212,7 +213,7 @@ export async function loadImageFromRef(
       } catch (err) {
         // Log the actual error for debugging (sandbox violation or other path error)
         log.debug(
-          `Native image: sandbox validation failed for ${ref.resolved}: ${err instanceof Error ? err.message : String(err)}`,
+          `Native image: sandbox validation failed for ${ref.resolved}: ${formatErrorForUser(err)}`,
         );
         return null;
       }
@@ -244,9 +245,7 @@ export async function loadImageFromRef(
     return { type: "image", data, mimeType };
   } catch (err) {
     // Log the actual error for debugging (size limits, network failures, etc.)
-    log.debug(
-      `Native image: failed to load ${ref.resolved}: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    log.debug(`Native image: failed to load ${ref.resolved}: ${formatErrorForUser(err)}`);
     return null;
   }
 }

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { ChannelId } from "../channels/plugins/types.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { listChannelPlugins } from "../channels/plugins/index.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 import { type HookMappingResolved, resolveHookMappings } from "./hooks-mapping.js";
 
@@ -97,7 +98,7 @@ export async function readJsonBody(
         const parsed = JSON.parse(raw) as unknown;
         resolve({ ok: true, value: parsed });
       } catch (err) {
-        resolve({ ok: false, error: String(err) });
+        resolve({ ok: false, error: formatErrorForLog(err) });
       }
     });
     req.on("error", (err) => {
@@ -105,7 +106,7 @@ export async function readJsonBody(
         return;
       }
       done = true;
-      resolve({ ok: false, error: String(err) });
+      resolve({ ok: false, error: formatErrorForLog(err) });
     });
   });
 }

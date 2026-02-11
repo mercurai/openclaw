@@ -7,6 +7,7 @@ import type { ChannelOnboardingAdapter } from "../onboarding-types.js";
 import { loginWeb } from "../../../channel-web.js";
 import { formatCliCommand } from "../../../cli/command-format.js";
 import { mergeWhatsAppConfig } from "../../../config/merge-config.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../../routing/session-key.js";
 import { formatDocsLink } from "../../../terminal/links.js";
 import { normalizeE164, pathExists } from "../../../utils.js";
@@ -326,7 +327,7 @@ export const whatsappOnboardingAdapter: ChannelOnboardingAdapter = {
       try {
         await loginWeb(false, undefined, runtime, accountId);
       } catch (err) {
-        runtime.error(`WhatsApp login failed: ${String(err)}`);
+        runtime.error(`WhatsApp login failed: ${formatErrorForLog(err)}`);
         await prompter.note(`Docs: ${formatDocsLink("/whatsapp", "whatsapp")}`, "WhatsApp help");
       }
     } else if (!linked) {

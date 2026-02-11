@@ -1,5 +1,6 @@
 import * as net from "node:net";
 import type { TelegramNetworkConfig } from "../config/types.telegram.js";
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { resolveFetch } from "../infra/fetch.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveTelegramAutoSelectFamilyDecision } from "./network-config.js";
@@ -38,7 +39,13 @@ export function resolveTelegramFetch(
   }
   const fetchImpl = resolveFetch();
   if (!fetchImpl) {
-    throw new Error("fetch is not available; set channels.telegram.proxy in config");
+    throw new ChannelError(
+      "fetch is not available; set channels.telegram.proxy in config",
+      OpenClawErrorCodes.CHANNEL_CONNECTION_LOST,
+      {
+        context: { channel: "telegram", reason: "fetch unavailable" },
+      },
+    );
   }
   return fetchImpl;
 }

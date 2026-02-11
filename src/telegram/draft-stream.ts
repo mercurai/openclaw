@@ -1,4 +1,5 @@
 import type { Bot } from "grammy";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { buildTelegramThreadParams, type TelegramThreadSpec } from "./bot/helpers.js";
 
 const TELEGRAM_DRAFT_MAX_CHARS = 4096;
@@ -58,9 +59,7 @@ export function createTelegramDraftStream(params: {
       await params.api.sendMessageDraft(chatId, draftId, trimmed, threadParams);
     } catch (err) {
       stopped = true;
-      params.warn?.(
-        `telegram draft stream failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      params.warn?.(`telegram draft stream failed: ${formatErrorForUser(err)}`);
     }
   };
 

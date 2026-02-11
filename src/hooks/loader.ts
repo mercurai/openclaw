@@ -9,6 +9,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { OpenClawConfig } from "../config/config.js";
 import type { InternalHookHandler } from "./internal-hooks.js";
+import { PluginError, errorLogContext } from "../infra/errors/index.js";
 import { resolveHookConfig } from "./config.js";
 import { shouldIncludeHook } from "./config.js";
 import { registerInternalHook } from "./internal-hooks.js";
@@ -92,17 +93,13 @@ export async function loadInternalHooks(
         );
         loadedCount++;
       } catch (err) {
-        console.error(
-          `Failed to load hook ${entry.hook.name}:`,
-          err instanceof Error ? err.message : String(err),
-        );
+        const pluginErr = PluginError.loadFailed(entry.hook.name, err);
+        console.error("Failed to load hook", errorLogContext(pluginErr));
       }
     }
   } catch (err) {
-    console.error(
-      "Failed to load directory-based hooks:",
-      err instanceof Error ? err.message : String(err),
-    );
+    const pluginErr = PluginError.loadFailed("directory-hooks", err);
+    console.error("Failed to load directory-based hooks", errorLogContext(pluginErr));
   }
 
   // 2. Load legacy config handlers (backwards compatibility)
@@ -135,10 +132,8 @@ export async function loadInternalHooks(
       );
       loadedCount++;
     } catch (err) {
-      console.error(
-        `Failed to load hook handler from ${handlerConfig.module}:`,
-        err instanceof Error ? err.message : String(err),
-      );
+      const pluginErr = PluginError.loadFailed(handlerConfig.module, err);
+      console.error("Failed to load hook handler", errorLogContext(pluginErr));
     }
   }
 

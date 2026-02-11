@@ -3,6 +3,7 @@ import { resolveIsNixMode } from "../../config/paths.js";
 import { resolveGatewayService } from "../../daemon/service.js";
 import { renderSystemdUnavailableHints } from "../../daemon/systemd-hints.js";
 import { isSystemdUserServiceAvailable } from "../../daemon/systemd.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { isWSL } from "../../infra/wsl.js";
 import { defaultRuntime } from "../../runtime.js";
 import { buildDaemonServiceSnapshot, createNullWriter, emitDaemonActionJson } from "./response.js";
@@ -59,7 +60,7 @@ export async function runDaemonUninstall(opts: DaemonLifecycleOptions = {}) {
   try {
     await service.uninstall({ env: process.env, stdout });
   } catch (err) {
-    fail(`Gateway uninstall failed: ${String(err)}`);
+    fail(`Gateway uninstall failed: ${formatErrorForLog(err)}`);
     return;
   }
 
@@ -115,7 +116,7 @@ export async function runDaemonStart(opts: DaemonLifecycleOptions = {}) {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Gateway service check failed: ${String(err)}`);
+    fail(`Gateway service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (!loaded) {
@@ -145,7 +146,7 @@ export async function runDaemonStart(opts: DaemonLifecycleOptions = {}) {
     await service.restart({ env: process.env, stdout });
   } catch (err) {
     const hints = renderGatewayServiceStartHints();
-    fail(`Gateway start failed: ${String(err)}`, hints);
+    fail(`Gateway start failed: ${formatErrorForLog(err)}`, hints);
     return;
   }
 
@@ -196,7 +197,7 @@ export async function runDaemonStop(opts: DaemonLifecycleOptions = {}) {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Gateway service check failed: ${String(err)}`);
+    fail(`Gateway service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (!loaded) {
@@ -214,7 +215,7 @@ export async function runDaemonStop(opts: DaemonLifecycleOptions = {}) {
   try {
     await service.stop({ env: process.env, stdout });
   } catch (err) {
-    fail(`Gateway stop failed: ${String(err)}`);
+    fail(`Gateway stop failed: ${formatErrorForLog(err)}`);
     return;
   }
 
@@ -271,7 +272,7 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Gateway service check failed: ${String(err)}`);
+    fail(`Gateway service check failed: ${formatErrorForLog(err)}`);
     return false;
   }
   if (!loaded) {
@@ -313,7 +314,7 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
     return true;
   } catch (err) {
     const hints = renderGatewayServiceStartHints();
-    fail(`Gateway restart failed: ${String(err)}`, hints);
+    fail(`Gateway restart failed: ${formatErrorForLog(err)}`, hints);
     return false;
   }
 }

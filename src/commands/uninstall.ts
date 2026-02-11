@@ -9,6 +9,7 @@ import {
   resolveStateDir,
 } from "../config/config.js";
 import { resolveGatewayService } from "../daemon/service.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { stylePromptHint, stylePromptMessage, stylePromptTitle } from "../terminal/prompt-style.js";
 import { resolveHomeDir } from "../utils.js";
 import { collectWorkspaceDirs, isPathWithin, removePath } from "./cleanup-utils.js";
@@ -66,7 +67,7 @@ async function stopAndUninstallService(runtime: RuntimeEnv): Promise<boolean> {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    runtime.error(`Gateway service check failed: ${String(err)}`);
+    runtime.error(`Gateway service check failed: ${formatErrorForLog(err)}`);
     return false;
   }
   if (!loaded) {
@@ -76,13 +77,13 @@ async function stopAndUninstallService(runtime: RuntimeEnv): Promise<boolean> {
   try {
     await service.stop({ env: process.env, stdout: process.stdout });
   } catch (err) {
-    runtime.error(`Gateway stop failed: ${String(err)}`);
+    runtime.error(`Gateway stop failed: ${formatErrorForLog(err)}`);
   }
   try {
     await service.uninstall({ env: process.env, stdout: process.stdout });
     return true;
   } catch (err) {
-    runtime.error(`Gateway uninstall failed: ${String(err)}`);
+    runtime.error(`Gateway uninstall failed: ${formatErrorForLog(err)}`);
     return false;
   }
 }

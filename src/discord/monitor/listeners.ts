@@ -7,6 +7,7 @@ import {
   PresenceUpdateListener,
 } from "@buape/carbon";
 import { danger } from "../../globals.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { formatDurationSeconds } from "../../infra/format-time/format-duration.ts";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
@@ -80,7 +81,7 @@ export class DiscordMessageListener extends MessageCreateListener {
     void task
       .catch((err) => {
         const logger = this.logger ?? discordEventQueueLog;
-        logger.error(danger(`discord handler failed: ${String(err)}`));
+        logger.error(danger(`discord handler failed: ${formatErrorForLog(err)}`));
       })
       .finally(() => {
         logSlowDiscordListener({
@@ -284,7 +285,7 @@ async function handleDiscordReactionEvent(params: {
       contextKey: `discord:reaction:${action}:${data.message_id}:${user.id}:${emojiLabel}`,
     });
   } catch (err) {
-    params.logger.error(danger(`discord reaction handler failed: ${String(err)}`));
+    params.logger.error(danger(`discord reaction handler failed: ${formatErrorForLog(err)}`));
   }
 }
 
@@ -316,7 +317,7 @@ export class DiscordPresenceListener extends PresenceUpdateListener {
       );
     } catch (err) {
       const logger = this.logger ?? discordEventQueueLog;
-      logger.error(danger(`discord presence handler failed: ${String(err)}`));
+      logger.error(danger(`discord presence handler failed: ${formatErrorForLog(err)}`));
     }
   }
 }

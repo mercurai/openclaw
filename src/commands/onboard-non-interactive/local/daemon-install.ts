@@ -1,3 +1,4 @@
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { RuntimeEnv } from "../../../runtime.js";
 import type { OnboardOptions } from "../../onboard-types.js";
@@ -51,7 +52,7 @@ export async function installGatewayDaemonNonInteractive(params: {
       environment,
     });
   } catch (err) {
-    runtime.error(`Gateway service install failed: ${String(err)}`);
+    runtime.error(`Gateway service install failed: ${formatErrorForLog(err)}`);
     runtime.log(gatewayInstallErrorHint());
     return;
   }

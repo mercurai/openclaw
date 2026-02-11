@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { toError } from "../infra/errors/index.js";
 import { resolveLsofCommandSync } from "../infra/ports-lsof.js";
 import { sleep } from "../utils.js";
 
@@ -46,7 +47,7 @@ export function listPortListeners(port: number): PortProcess[] {
     if (status === 1) {
       return [];
     } // no listeners
-    throw err instanceof Error ? err : new Error(String(err));
+    throw toError(err);
   }
 }
 

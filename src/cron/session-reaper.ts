@@ -10,6 +10,7 @@ import type { CronConfig } from "../config/types.cron.js";
 import type { Logger } from "./service/state.js";
 import { parseDurationMs } from "../cli/parse-duration.js";
 import { updateSessionStore } from "../config/sessions.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { isCronRunSessionKey } from "../sessions/session-key-utils.js";
 
 const DEFAULT_RETENTION_MS = 24 * 3_600_000; // 24 hours
@@ -93,7 +94,7 @@ export async function sweepCronRunSessions(params: {
       }
     });
   } catch (err) {
-    params.log.warn({ err: String(err) }, "cron-reaper: failed to sweep session store");
+    params.log.warn({ err: formatErrorForLog(err) }, "cron-reaper: failed to sweep session store");
     return { swept: false, pruned: 0 };
   }
 

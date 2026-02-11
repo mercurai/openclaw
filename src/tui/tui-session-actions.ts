@@ -3,6 +3,7 @@ import type { SessionsPatchResult } from "../gateway/protocol/index.js";
 import type { ChatLog } from "./components/chat-log.js";
 import type { GatewayAgentsList, GatewayChatClient } from "./gateway-chat.js";
 import type { TuiOptions, TuiStateAccess } from "./tui-types.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import {
   normalizeAgentId,
   normalizeMainKey,
@@ -111,7 +112,7 @@ export function createSessionActions(context: SessionActionContext) {
       const result = await client.listAgents();
       applyAgentsResult(result);
     } catch (err) {
-      chatLog.addSystem(`agents list failed: ${String(err)}`);
+      chatLog.addSystem(`agents list failed: ${formatErrorForLog(err)}`);
     }
   };
 
@@ -260,7 +261,7 @@ export function createSessionActions(context: SessionActionContext) {
         defaults: result.defaults,
       });
     } catch (err) {
-      chatLog.addSystem(`sessions list failed: ${String(err)}`);
+      chatLog.addSystem(`sessions list failed: ${formatErrorForLog(err)}`);
     }
   };
 
@@ -362,7 +363,7 @@ export function createSessionActions(context: SessionActionContext) {
       }
       state.historyLoaded = true;
     } catch (err) {
-      chatLog.addSystem(`history failed: ${String(err)}`);
+      chatLog.addSystem(`history failed: ${formatErrorForLog(err)}`);
     }
     await refreshSessionInfo();
     tui.requestRender();
@@ -394,7 +395,7 @@ export function createSessionActions(context: SessionActionContext) {
       });
       setActivityStatus("aborted");
     } catch (err) {
-      chatLog.addSystem(`abort failed: ${String(err)}`);
+      chatLog.addSystem(`abort failed: ${formatErrorForLog(err)}`);
       setActivityStatus("abort failed");
     }
     tui.requestRender();

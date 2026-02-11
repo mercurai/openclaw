@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import {
   formatIcaclsResetCommand,
   formatWindowsAclSummary,
@@ -54,7 +55,7 @@ export async function safeStat(targetPath: string): Promise<{
       mode: null,
       uid: null,
       gid: null,
-      error: String(err),
+      error: formatErrorForLog(err),
     };
   }
 }

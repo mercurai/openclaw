@@ -1,16 +1,26 @@
 import type { RequestClient } from "@buape/carbon";
 import type { RetryConfig } from "../infra/retry.js";
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 
-export class DiscordSendError extends Error {
+export class DiscordSendError extends ChannelError {
   kind?: "missing-permissions" | "dm-blocked";
   channelId?: string;
   missingPermissions?: string[];
 
   constructor(message: string, opts?: Partial<DiscordSendError>) {
-    super(message);
+    super(message, OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: {
+        channel: "discord",
+        ...(opts?.channelId ? { channelId: opts.channelId } : {}),
+        ...(opts?.kind ? { kind: opts.kind } : {}),
+        ...(opts?.missingPermissions ? { missingPermissions: opts.missingPermissions } : {}),
+      },
+    });
     this.name = "DiscordSendError";
     if (opts) {
-      Object.assign(this, opts);
+      this.kind = opts.kind;
+      this.channelId = opts.channelId;
+      this.missingPermissions = opts.missingPermissions;
     }
   }
 

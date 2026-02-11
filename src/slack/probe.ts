@@ -1,3 +1,4 @@
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { createSlackWebClient } from "./client.js";
 
 export type SlackProbe = {
@@ -45,7 +46,7 @@ export async function probeSlack(token: string, timeoutMs = 2500): Promise<Slack
       team: { id: result.team_id ?? undefined, name: result.team ?? undefined },
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     const status =
       typeof (err as { status?: number }).status === "number"
         ? (err as { status?: number }).status

@@ -8,6 +8,7 @@ import type {
   SlackThreadBroadcastEvent,
 } from "../types.js";
 import { danger } from "../../../globals.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
 
@@ -113,7 +114,7 @@ export function registerSlackMessageEvents(params: {
 
       await handleSlackMessage(message, { source: "message" });
     } catch (err) {
-      ctx.runtime.error?.(danger(`slack handler failed: ${String(err)}`));
+      ctx.runtime.error?.(danger(`slack handler failed: ${formatErrorForLog(err)}`));
     }
   });
 
@@ -129,7 +130,7 @@ export function registerSlackMessageEvents(params: {
         wasMentioned: true,
       });
     } catch (err) {
-      ctx.runtime.error?.(danger(`slack mention handler failed: ${String(err)}`));
+      ctx.runtime.error?.(danger(`slack mention handler failed: ${formatErrorForLog(err)}`));
     }
   });
 }

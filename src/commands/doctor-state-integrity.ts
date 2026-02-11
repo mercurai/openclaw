@@ -11,6 +11,7 @@ import {
   resolveSessionTranscriptsDirForAgent,
   resolveStorePath,
 } from "../config/sessions.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
 import { note } from "../terminal/note.js";
 import { shortenHomePath } from "../utils.js";
@@ -52,7 +53,7 @@ function ensureDir(dir: string): { ok: boolean; error?: string } {
     fs.mkdirSync(dir, { recursive: true });
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   }
 }
 

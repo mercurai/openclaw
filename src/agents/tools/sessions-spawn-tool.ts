@@ -5,6 +5,7 @@ import type { AnyAgentTool } from "./common.js";
 import { formatThinkingLevels, normalizeThinkLevel } from "../../auto-reply/thinking.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
@@ -200,8 +201,7 @@ export function createSessionsSpawnTool(opts?: {
           });
           modelApplied = true;
         } catch (err) {
-          const messageText =
-            err instanceof Error ? err.message : typeof err === "string" ? err : "error";
+          const messageText = formatErrorForUser(err);
           const recoverable =
             messageText.includes("invalid model") || messageText.includes("model not allowed");
           if (!recoverable) {
@@ -225,8 +225,7 @@ export function createSessionsSpawnTool(opts?: {
             timeoutMs: 10_000,
           });
         } catch (err) {
-          const messageText =
-            err instanceof Error ? err.message : typeof err === "string" ? err : "error";
+          const messageText = formatErrorForUser(err);
           return jsonResult({
             status: "error",
             error: messageText,
@@ -273,8 +272,7 @@ export function createSessionsSpawnTool(opts?: {
           childRunId = response.runId;
         }
       } catch (err) {
-        const messageText =
-          err instanceof Error ? err.message : typeof err === "string" ? err : "error";
+        const messageText = formatErrorForUser(err);
         return jsonResult({
           status: "error",
           error: messageText,

@@ -14,6 +14,7 @@ import {
   normalizeUsageDisplay,
   resolveResponseUsageMode,
 } from "../auto-reply/thinking.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { formatRelativeTimestamp } from "../infra/format-time/format-relative.ts";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { helpText, parseCommand } from "./commands.js";
@@ -97,7 +98,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             applySessionInfoFromPatch(result);
             await refreshSessionInfo();
           } catch (err) {
-            chatLog.addSystem(`model set failed: ${String(err)}`);
+            chatLog.addSystem(`model set failed: ${formatErrorForLog(err)}`);
           }
           closeOverlay();
           tui.requestRender();
@@ -110,7 +111,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       openOverlay(selector);
       tui.requestRender();
     } catch (err) {
-      chatLog.addSystem(`model list failed: ${String(err)}`);
+      chatLog.addSystem(`model list failed: ${formatErrorForLog(err)}`);
       tui.requestRender();
     }
   };
@@ -195,7 +196,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       openOverlay(selector);
       tui.requestRender();
     } catch (err) {
-      chatLog.addSystem(`sessions list failed: ${String(err)}`);
+      chatLog.addSystem(`sessions list failed: ${formatErrorForLog(err)}`);
       tui.requestRender();
     }
   };
@@ -267,7 +268,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           }
           chatLog.addSystem("status: unknown response");
         } catch (err) {
-          chatLog.addSystem(`status failed: ${String(err)}`);
+          chatLog.addSystem(`status failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "agent":
@@ -303,7 +304,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             applySessionInfoFromPatch(result);
             await refreshSessionInfo();
           } catch (err) {
-            chatLog.addSystem(`model set failed: ${String(err)}`);
+            chatLog.addSystem(`model set failed: ${formatErrorForLog(err)}`);
           }
         }
         break;
@@ -329,7 +330,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
-          chatLog.addSystem(`think failed: ${String(err)}`);
+          chatLog.addSystem(`think failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "verbose":
@@ -346,7 +347,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           applySessionInfoFromPatch(result);
           await loadHistory();
         } catch (err) {
-          chatLog.addSystem(`verbose failed: ${String(err)}`);
+          chatLog.addSystem(`verbose failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "reasoning":
@@ -363,7 +364,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
-          chatLog.addSystem(`reasoning failed: ${String(err)}`);
+          chatLog.addSystem(`reasoning failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "usage": {
@@ -385,7 +386,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
-          chatLog.addSystem(`usage failed: ${String(err)}`);
+          chatLog.addSystem(`usage failed: ${formatErrorForLog(err)}`);
         }
         break;
       }
@@ -407,7 +408,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
-          chatLog.addSystem(`elevated failed: ${String(err)}`);
+          chatLog.addSystem(`elevated failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "activation":
@@ -424,7 +425,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
-          chatLog.addSystem(`activation failed: ${String(err)}`);
+          chatLog.addSystem(`activation failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "new":
@@ -440,7 +441,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem(`session ${state.currentSessionKey} reset`);
           await loadHistory();
         } catch (err) {
-          chatLog.addSystem(`reset failed: ${String(err)}`);
+          chatLog.addSystem(`reset failed: ${formatErrorForLog(err)}`);
         }
         break;
       case "abort":
@@ -484,7 +485,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         forgetLocalRunId?.(state.activeChatRunId);
       }
       state.activeChatRunId = null;
-      chatLog.addSystem(`send failed: ${String(err)}`);
+      chatLog.addSystem(`send failed: ${formatErrorForLog(err)}`);
       setActivityStatus("error");
     }
     tui.requestRender();

@@ -6,6 +6,7 @@ import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { createConfigIO } from "../config/config.js";
 import { INCLUDE_KEY, MAX_INCLUDE_DEPTH } from "../config/includes.js";
 import { resolveConfigPath, resolveOAuthDir, resolveStateDir } from "../config/paths.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { readChannelAllowFromStore } from "../pairing/pairing-store.js";
 import { runExec } from "../process/exec.js";
 import { normalizeAgentId } from "../routing/session-key.js";
@@ -495,7 +496,7 @@ export async function fixSecurityFootguns(opts?: {
         await io.writeConfigFile(fixed.cfg);
         configWritten = true;
       } catch (err) {
-        errors.push(`writeConfigFile failed: ${String(err)}`);
+        errors.push(`writeConfigFile failed: ${formatErrorForLog(err)}`);
       }
     }
   }

@@ -1,4 +1,5 @@
 import type { AnyAgentTool } from "./tools/common.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { isPlainObject } from "../utils.js";
@@ -55,7 +56,9 @@ export async function runBeforeToolCallHook(args: {
     }
   } catch (err) {
     const toolCallId = args.toolCallId ? ` toolCallId=${args.toolCallId}` : "";
-    log.warn(`before_tool_call hook failed: tool=${toolName}${toolCallId} error=${String(err)}`);
+    log.warn(
+      `before_tool_call hook failed: tool=${toolName}${toolCallId} error=${formatErrorForLog(err)}`,
+    );
   }
 
   return { blocked: false, params };

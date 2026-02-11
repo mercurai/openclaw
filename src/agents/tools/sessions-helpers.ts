@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { isAcpSessionKey, normalizeMainKey } from "../../routing/session-key.js";
 import { sanitizeUserFacingText } from "../pi-embedded-helpers.js";
 import {
@@ -200,7 +201,7 @@ async function resolveSessionKeyFromSessionId(params: {
         error: `Session not visible from this sandboxed agent session: ${params.sessionId}`,
       };
     }
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     return {
       ok: false,
       status: "error",

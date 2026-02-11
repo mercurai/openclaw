@@ -1,15 +1,31 @@
+import {
+  OpenClawError,
+  OpenClawErrorCodes,
+  type OpenClawErrorCode,
+} from "../infra/errors/index.js";
 import { classifyFailoverReason, type FailoverReason } from "./pi-embedded-helpers.js";
 
 const TIMEOUT_HINT_RE = /timeout|timed out|deadline exceeded|context deadline exceeded/i;
 const ABORT_TIMEOUT_RE = /request was aborted|request aborted/i;
 
-export class FailoverError extends Error {
+function mapFailoverReasonToErrorCode(reason: FailoverReason): OpenClawErrorCode {
+  switch (reason) {
+    case "billing":
+      return OpenClawErrorCodes.AGENT_BILLING_ERROR;
+    case "timeout":
+      return OpenClawErrorCodes.AGENT_TIMEOUT;
+    default:
+      return OpenClawErrorCodes.INTERNAL_ERROR;
+  }
+}
+
+export class FailoverError extends OpenClawError {
   readonly reason: FailoverReason;
   readonly provider?: string;
   readonly model?: string;
   readonly profileId?: string;
   readonly status?: number;
-  readonly code?: string;
+  readonly agentCode?: string;
 
   constructor(
     message: string,
@@ -19,18 +35,30 @@ export class FailoverError extends Error {
       model?: string;
       profileId?: string;
       status?: number;
-      code?: string;
+      agentCode?: string;
       cause?: unknown;
     },
   ) {
-    super(message, { cause: params.cause });
+    super(message, {
+      code: mapFailoverReasonToErrorCode(params.reason),
+      cause: params.cause,
+      retryable: params.reason === "timeout" || params.reason === "rate_limit",
+      context: {
+        reason: params.reason,
+        provider: params.provider,
+        model: params.model,
+        profileId: params.profileId,
+        status: params.status,
+        agentCode: params.agentCode,
+      },
+    });
     this.name = "FailoverError";
     this.reason = params.reason;
     this.provider = params.provider;
     this.model = params.model;
     this.profileId = params.profileId;
     this.status = params.status;
-    this.code = params.code;
+    this.agentCode = params.agentCode;
   }
 }
 
@@ -190,7 +218,7 @@ export function describeFailoverError(err: unknown): {
       message: err.message,
       reason: err.reason,
       status: err.status,
-      code: err.code,
+      code: err.agentCode,
     };
   }
   const message = getErrorMessage(err) || String(err);
@@ -220,7 +248,7 @@ export function coerceToFailoverError(
 
   const message = getErrorMessage(err) || String(err);
   const status = getStatusCode(err) ?? resolveFailoverStatus(reason);
-  const code = getErrorCode(err);
+  const agentCode = getErrorCode(err);
 
   return new FailoverError(message, {
     reason,
@@ -228,7 +256,7 @@ export function coerceToFailoverError(
     model: context?.model,
     profileId: context?.profileId,
     status,
-    code,
+    agentCode,
     cause: err instanceof Error ? err : undefined,
   });
 }

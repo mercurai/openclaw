@@ -7,6 +7,7 @@ import {
 import { loadConfig, resolveGatewayPort } from "../../config/config.js";
 import { resolveIsNixMode } from "../../config/paths.js";
 import { resolveGatewayService } from "../../daemon/service.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatCliCommand } from "../command-format.js";
 import { buildDaemonServiceSnapshot, createNullWriter, emitDaemonActionJson } from "./response.js";
@@ -71,7 +72,7 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Gateway service check failed: ${String(err)}`);
+    fail(`Gateway service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (loaded) {
@@ -117,7 +118,7 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
       environment,
     });
   } catch (err) {
-    fail(`Gateway install failed: ${String(err)}`);
+    fail(`Gateway install failed: ${formatErrorForLog(err)}`);
     return;
   }
 

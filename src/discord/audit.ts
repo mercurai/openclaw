@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { DiscordGuildChannelConfig, DiscordGuildEntry } from "../config/types.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { isRecord } from "../utils.js";
 import { resolveDiscordAccount } from "./accounts.js";
 import { fetchChannelPermissionsDiscord } from "./send.js";
@@ -119,7 +120,7 @@ export async function auditDiscordChannelPermissions(params: {
       channels.push({
         channelId,
         ok: false,
-        error: err instanceof Error ? err.message : String(err),
+        error: formatErrorForUser(err),
         matchKey: channelId,
         matchSource: "id",
       });

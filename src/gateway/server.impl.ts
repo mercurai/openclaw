@@ -27,6 +27,7 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
@@ -213,7 +214,7 @@ export async function startGatewayServer(
           .join("\n")}`,
       );
     } catch (err) {
-      log.warn(`gateway: failed to persist plugin auto-enable changes: ${String(err)}`);
+      log.warn(`gateway: failed to persist plugin auto-enable changes: ${formatErrorForLog(err)}`);
     }
   }
 

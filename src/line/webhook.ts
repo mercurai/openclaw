@@ -2,6 +2,7 @@ import type { WebhookRequestBody } from "@line/bot-sdk";
 import type { Request, Response, NextFunction } from "express";
 import type { RuntimeEnv } from "../runtime.js";
 import { logVerbose, danger } from "../globals.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { validateLineSignature } from "./signature.js";
 
 export interface LineWebhookOptions {
@@ -74,7 +75,7 @@ export function createLineWebhookMiddleware(
         });
       }
     } catch (err) {
-      runtime?.error?.(danger(`line webhook error: ${String(err)}`));
+      runtime?.error?.(danger(`line webhook error: ${formatErrorForLog(err)}`));
       if (!res.headersSent) {
         res.status(500).json({ error: "Internal server error" });
       }

@@ -13,6 +13,7 @@ import {
 } from "../../channels/plugins/types.js";
 import { loadConfig } from "../../config/config.js";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "../../gateway/protocol/client-info.js";
+import { ToolError } from "../../infra/errors/index.js";
 import { getToolResult, runMessageAction } from "../../infra/outbound/message-action-runner.js";
 import { normalizeTargetForProvider } from "../../infra/outbound/target-normalization.js";
 import { normalizeAccountId } from "../../routing/session-key.js";
@@ -402,9 +403,7 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
     execute: async (_toolCallId, args, signal) => {
       // Check if already aborted before doing any work
       if (signal?.aborted) {
-        const err = new Error("Message send aborted");
-        err.name = "AbortError";
-        throw err;
+        throw ToolError.executionFailed("message", new Error("Message send aborted"));
       }
       // Shallow-copy so we don't mutate the original event args (used for logging/dedup).
       const params = { ...(args as Record<string, unknown>) };

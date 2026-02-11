@@ -1,3 +1,4 @@
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { colorize, isRich, theme } from "../terminal/theme.js";
 
 const formatKv = (line: string, rich: boolean) => {
@@ -21,7 +22,7 @@ const formatKv = (line: string, rich: boolean) => {
 export function formatHealthCheckFailure(err: unknown, opts: { rich?: boolean } = {}): string {
   const rich = opts.rich ?? isRich();
   const raw = String(err);
-  const message = err instanceof Error ? err.message : raw;
+  const message = formatErrorForUser(err);
 
   if (!rich) {
     return `Health check failed: ${raw}`;

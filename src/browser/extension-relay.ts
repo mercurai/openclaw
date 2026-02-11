@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import WebSocket, { WebSocketServer } from "ws";
 import { isLoopbackAddress, isLoopbackHost } from "../gateway/net.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { rawDataToString } from "../infra/ws.js";
 
 type CdpCommand = {
@@ -693,7 +694,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
         sendResponseToCdp(ws, {
           id: cmd.id,
           sessionId: cmd.sessionId,
-          error: { message: err instanceof Error ? err.message : String(err) },
+          error: { message: formatErrorForUser(err) },
         });
       }
     });

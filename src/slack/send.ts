@@ -8,6 +8,7 @@ import {
 import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
 import { logVerbose } from "../globals.js";
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { loadWebMedia } from "../web/media.js";
 import { resolveSlackAccount } from "./accounts.js";
 import { createSlackWebClient } from "./client.js";
@@ -57,8 +58,12 @@ function resolveToken(params: {
         params.explicit,
       )} source=${params.fallbackSource ?? "unknown"}`,
     );
-    throw new Error(
+    throw new ChannelError(
       `Slack bot token missing for account "${params.accountId}" (set channels.slack.accounts.${params.accountId}.botToken or SLACK_BOT_TOKEN for default).`,
+      OpenClawErrorCodes.CHANNEL_AUTH_FAILED,
+      {
+        context: { channel: "slack", accountId: params.accountId },
+      },
     );
   }
   return fallback;
@@ -67,7 +72,13 @@ function resolveToken(params: {
 function parseRecipient(raw: string): SlackRecipient {
   const target = parseSlackTarget(raw);
   if (!target) {
-    throw new Error("Recipient is required for Slack sends");
+    throw new ChannelError(
+      "Recipient is required for Slack sends",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "slack", recipient: raw },
+      },
+    );
   }
   return { kind: target.kind, id: target.id };
 }
@@ -82,7 +93,13 @@ async function resolveChannelId(
   const response = await client.conversations.open({ users: recipient.id });
   const channelId = response.channel?.id;
   if (!channelId) {
-    throw new Error("Failed to open Slack DM channel");
+    throw new ChannelError(
+      "Failed to open Slack DM channel",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "slack", userId: recipient.id },
+      },
+    );
   }
   return { channelId, isDm: true };
 }
@@ -131,7 +148,13 @@ export async function sendMessageSlack(
 ): Promise<SlackSendResult> {
   const trimmedMessage = message?.trim() ?? "";
   if (!trimmedMessage && !opts.mediaUrl) {
-    throw new Error("Slack send requires text or media");
+    throw new ChannelError(
+      "Slack send requires text or media",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "slack", to },
+      },
+    );
   }
   const cfg = loadConfig();
   const account = resolveSlackAccount({

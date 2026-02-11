@@ -15,6 +15,7 @@ import {
 } from "../agents/auth-profiles.js";
 import { updateAuthProfileStoreWithLock } from "../agents/auth-profiles/store.js";
 import { formatCliCommand } from "../cli/command-format.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { note } from "../terminal/note.js";
 
 export async function maybeRepairAnthropicOAuthProfileId(
@@ -300,7 +301,7 @@ export async function noteAuthProfileHealth(params: {
           profileId: profile.profileId,
         });
       } catch (err) {
-        errors.push(`- ${profile.profileId}: ${err instanceof Error ? err.message : String(err)}`);
+        errors.push(`- ${profile.profileId}: ${formatErrorForUser(err)}`);
       }
     }
     if (errors.length > 0) {

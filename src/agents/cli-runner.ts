@@ -5,6 +5,7 @@ import type { EmbeddedPiRunResult } from "./pi-embedded-runner.js";
 import { resolveHeartbeatPrompt } from "../auto-reply/heartbeat.js";
 import { shouldLogVerbose } from "../globals.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { resolveSessionAgentIds } from "./agent-scope.js";
@@ -304,7 +305,7 @@ export async function runCliAgent(params: {
     if (err instanceof FailoverError) {
       throw err;
     }
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     if (isFailoverErrorMessage(message)) {
       const reason = classifyFailoverReason(message) ?? "unknown";
       const status = resolveFailoverStatus(reason);

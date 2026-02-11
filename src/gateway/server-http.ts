@@ -18,6 +18,7 @@ import {
   handleA2uiHttpRequest,
 } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
 import { authorizeGatewayConnect, isLocalDirectRequest, type ResolvedGatewayAuth } from "./auth.js";
 import {
@@ -260,7 +261,7 @@ export function createHooksRequestHandler(
           return true;
         }
       } catch (err) {
-        logHooks.warn(`hook mapping failed: ${String(err)}`);
+        logHooks.warn(`hook mapping failed: ${formatErrorForLog(err)}`);
         sendJson(res, 500, { ok: false, error: "hook mapping failed" });
         return true;
       }

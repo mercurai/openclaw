@@ -9,6 +9,7 @@ import {
   resolveStorePath,
 } from "../config/sessions.js";
 import { callGateway } from "../gateway/call.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { formatDurationCompact } from "../infra/format-time/format-duration.ts";
 import { normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
@@ -541,7 +542,7 @@ export async function runSubagentAnnounceFlow(params: {
 
     didAnnounce = true;
   } catch (err) {
-    defaultRuntime.error?.(`Subagent announce failed: ${String(err)}`);
+    defaultRuntime.error?.(`Subagent announce failed: ${formatErrorForLog(err)}`);
     // Best-effort follow-ups; ignore failures to avoid breaking the caller response.
   } finally {
     // Patch label after all writes complete

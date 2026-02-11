@@ -10,6 +10,7 @@ import type { TypingController } from "./typing.js";
 import { createOpenClawTools } from "../../agents/openclaw-tools.js";
 import { getChannelDock } from "../../channels/dock.js";
 import { logVerbose } from "../../globals.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { resolveGatewayMessageChannel } from "../../utils/message-channel.js";
 import { listSkillCommandsForWorkspace, resolveSkillCommandInvocation } from "../skill-commands.js";
 import { getAbortMemory } from "./abort.js";
@@ -200,7 +201,7 @@ export async function handleInlineActions(params: {
         typing.cleanup();
         return { kind: "reply", reply: { text } };
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForUser(err);
         typing.cleanup();
         return { kind: "reply", reply: { text: `❌ ${message}` } };
       }

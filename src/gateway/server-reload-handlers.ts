@@ -5,6 +5,7 @@ import type { ChannelKind, GatewayReloadPlan } from "./config-reload.js";
 import { resolveAgentMaxConcurrent, resolveSubagentMaxConcurrent } from "../config/agent-limits.js";
 import { startGmailWatcher, stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { resetDirectoryCache } from "../infra/outbound/target-resolver.js";
 import {
   authorizeGatewaySigusr1Restart,
@@ -52,7 +53,7 @@ export function createGatewayReloadHandlers(params: {
       try {
         nextState.hooksConfig = resolveHooksConfig(nextConfig);
       } catch (err) {
-        params.logHooks.warn(`hooks config reload failed: ${String(err)}`);
+        params.logHooks.warn(`hooks config reload failed: ${formatErrorForLog(err)}`);
       }
     }
 

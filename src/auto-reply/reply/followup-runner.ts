@@ -12,6 +12,7 @@ import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
 import { resolveAgentIdFromSessionKey, type SessionEntry } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
@@ -189,7 +190,7 @@ export function createFollowupRunner(params: {
         fallbackProvider = fallbackResult.provider;
         fallbackModel = fallbackResult.model;
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForUser(err);
         defaultRuntime.error?.(`Followup agent failed before reply: ${message}`);
         return;
       }

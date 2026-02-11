@@ -34,6 +34,7 @@ import type {
   PluginHookToolResultPersistEvent,
   PluginHookToolResultPersistResult,
 } from "./types.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 
 // Re-export types for consumers
 export type {
@@ -114,7 +115,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       try {
         await (hook.handler as (event: unknown, ctx: unknown) => Promise<void>)(event, ctx);
       } catch (err) {
-        const msg = `[hooks] ${hookName} handler from ${hook.pluginId} failed: ${String(err)}`;
+        const msg = `[hooks] ${hookName} handler from ${hook.pluginId} failed: ${formatErrorForLog(err)}`;
         if (catchErrors) {
           logger?.error(msg);
         } else {
@@ -159,7 +160,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           }
         }
       } catch (err) {
-        const msg = `[hooks] ${hookName} handler from ${hook.pluginId} failed: ${String(err)}`;
+        const msg = `[hooks] ${hookName} handler from ${hook.pluginId} failed: ${formatErrorForLog(err)}`;
         if (catchErrors) {
           logger?.error(msg);
         } else {
@@ -359,7 +360,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           current = next;
         }
       } catch (err) {
-        const msg = `[hooks] tool_result_persist handler from ${hook.pluginId} failed: ${String(err)}`;
+        const msg = `[hooks] tool_result_persist handler from ${hook.pluginId} failed: ${formatErrorForLog(err)}`;
         if (catchErrors) {
           logger?.error(msg);
         } else {

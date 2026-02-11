@@ -1,6 +1,7 @@
 import chokidar, { type FSWatcher } from "chokidar";
 import path from "node:path";
 import type { OpenClawConfig } from "../../config/config.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { CONFIG_DIR, resolveUserPath } from "../../utils.js";
 import { resolvePluginSkillDirs } from "./plugin-skills.js";
@@ -50,7 +51,7 @@ function emit(event: SkillsChangeEvent) {
     try {
       listener(event);
     } catch (err) {
-      log.warn(`skills change listener failed: ${String(err)}`);
+      log.warn(`skills change listener failed: ${formatErrorForLog(err)}`);
     }
   }
 }

@@ -1,5 +1,6 @@
 import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { spawn } from "node:child_process";
+import { toError } from "../infra/errors/index.js";
 
 export type SpawnFallback = {
   label: string;
@@ -32,12 +33,10 @@ export function resolveCommandStdio(params: {
 }
 
 export function formatSpawnError(err: unknown): string {
-  if (!(err instanceof Error)) {
-    return String(err);
-  }
-  const details = err as NodeJS.ErrnoException;
+  const error = toError(err);
+  const details = error as NodeJS.ErrnoException;
   const parts: string[] = [];
-  const message = err.message?.trim();
+  const message = error.message?.trim();
   if (message) {
     parts.push(message);
   }

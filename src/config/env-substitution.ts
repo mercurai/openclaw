@@ -22,16 +22,23 @@
 
 // Pattern for valid uppercase env var names: starts with letter or underscore,
 // followed by letters, numbers, or underscores (all uppercase)
+import { ConfigError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { isPlainObject } from "../utils.js";
 
 const ENV_VAR_NAME_PATTERN = /^[A-Z_][A-Z0-9_]*$/;
 
-export class MissingEnvVarError extends Error {
+export class MissingEnvVarError extends ConfigError {
   constructor(
     public readonly varName: string,
     public readonly configPath: string,
   ) {
-    super(`Missing env var "${varName}" referenced at config path: ${configPath}`);
+    super(
+      `Missing env var "${varName}" referenced at config path: ${configPath}`,
+      OpenClawErrorCodes.CONFIG_MISSING_REQUIRED,
+      {
+        context: { errorType: "missing-env", varName, configPath },
+      },
+    );
     this.name = "MissingEnvVarError";
   }
 }

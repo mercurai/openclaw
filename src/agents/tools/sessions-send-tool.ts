@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import type { AnyAgentTool } from "./common.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
@@ -141,7 +142,7 @@ export function createSessionsSendTool(opts?: {
           });
           resolvedKey = typeof resolved?.key === "string" ? resolved.key.trim() : "";
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = formatErrorForUser(err);
           if (restrictToSpawned) {
             return jsonResult({
               runId: crypto.randomUUID(),
@@ -297,8 +298,7 @@ export function createSessionsSendTool(opts?: {
             delivery,
           });
         } catch (err) {
-          const messageText =
-            err instanceof Error ? err.message : typeof err === "string" ? err : "error";
+          const messageText = formatErrorForUser(err);
           return jsonResult({
             runId,
             status: "error",

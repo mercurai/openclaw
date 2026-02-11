@@ -4,6 +4,7 @@ import { Type } from "@sinclair/typebox";
 import crypto from "node:crypto";
 import path from "node:path";
 import type { BashSandboxConfig } from "./bash-tools.shared.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import {
   type ExecAsk,
   type ExecHost,
@@ -512,7 +513,7 @@ async function runExecProcess(opts: {
         },
       };
     } catch (err) {
-      const errText = String(err);
+      const errText = formatErrorForLog(err);
       const warning = `Warning: PTY spawn failed (${errText}); retrying without PTY for \`${opts.command}\`.`;
       logWarn(`exec: PTY spawn failed (${errText}); retrying without PTY for "${opts.command}".`);
       opts.warnings.push(warning);
@@ -774,7 +775,9 @@ async function runExecProcess(opts: {
         markExited(session, null, null, "failed");
         maybeNotifyOnExit(session, "failed");
         const aggregated = session.aggregated.trim();
-        const message = aggregated ? `${aggregated}\n\n${String(err)}` : String(err);
+        const message = aggregated
+          ? `${aggregated}\n\n${formatErrorForLog(err)}`
+          : formatErrorForLog(err);
         settle({
           status: "failed",
           exitCode: null,
@@ -1021,7 +1024,7 @@ export function createExecTool(
         try {
           nodeId = resolveNodeIdFromList(nodes, nodeQuery, !nodeQuery);
         } catch (err) {
-          if (!nodeQuery && String(err).includes("node required")) {
+          if (!nodeQuery && formatErrorForLog(err).includes("node required")) {
             throw new Error(
               "exec host=node requires a node id when multiple nodes are available (set tools.exec.node or exec.node).",
               { cause: err },

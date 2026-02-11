@@ -10,6 +10,7 @@ import fsSync from "node:fs";
 import qrcode from "qrcode-terminal";
 import { formatCliCommand } from "../cli/command-format.js";
 import { danger, success } from "../globals.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { getChildLogger, toPinoLikeLogger } from "../logging.js";
 import { ensureDir, resolveUserPath } from "../utils.js";
 import { VERSION } from "../version.js";
@@ -39,7 +40,7 @@ function enqueueSaveCreds(
   credsSaveQueue = credsSaveQueue
     .then(() => safeSaveCreds(authDir, saveCreds, logger))
     .catch((err) => {
-      logger.warn({ error: String(err) }, "WhatsApp creds save queue error");
+      logger.warn({ error: formatErrorForLog(err) }, "WhatsApp creds save queue error");
     });
 }
 
@@ -83,7 +84,7 @@ async function safeSaveCreds(
   try {
     await Promise.resolve(saveCreds());
   } catch (err) {
-    logger.warn({ error: String(err) }, "failed saving WhatsApp creds");
+    logger.warn({ error: formatErrorForLog(err) }, "failed saving WhatsApp creds");
   }
 }
 
@@ -149,7 +150,7 @@ export async function createWaSocket(
           console.log(success("WhatsApp Web connected."));
         }
       } catch (err) {
-        sessionLogger.error({ error: String(err) }, "connection.update handler error");
+        sessionLogger.error({ error: formatErrorForLog(err) }, "connection.update handler error");
       }
     },
   );
@@ -157,7 +158,7 @@ export async function createWaSocket(
   // Handle WebSocket-level errors to prevent unhandled exceptions from crashing the process
   if (sock.ws && typeof (sock.ws as unknown as { on?: unknown }).on === "function") {
     sock.ws.on("error", (err: Error) => {
-      sessionLogger.error({ error: String(err) }, "WebSocket error");
+      sessionLogger.error({ error: formatErrorForLog(err) }, "WebSocket error");
     });
   }
 

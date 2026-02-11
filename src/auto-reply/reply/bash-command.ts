@@ -8,6 +8,7 @@ import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
 import { killProcessTree } from "../../agents/shell-utils.js";
 import { formatCliCommand } from "../../cli/command-format.js";
 import { logVerbose } from "../../globals.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { clampInt } from "../../utils.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 
@@ -413,7 +414,7 @@ export async function handleBashChatCommand(params: {
     };
   } catch (err) {
     activeJob = null;
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     return {
       text: [`⚠️ bash failed: ${commandText}`, formatOutputBlock(message)].join("\n"),
     };

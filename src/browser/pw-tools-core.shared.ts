@@ -1,3 +1,4 @@
+import { toError, formatErrorForUser } from "../infra/errors/index.js";
 import { parseRoleRef } from "./pw-role-snapshot.js";
 
 let nextUploadArmId = 0;
@@ -34,7 +35,7 @@ export function normalizeTimeoutMs(timeoutMs: number | undefined, fallback: numb
 }
 
 export function toAIFriendlyError(error: unknown, selector: string): Error {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = formatErrorForUser(error);
 
   if (message.includes("strict mode violation")) {
     const countMatch = message.match(/resolved to (\d+) elements/);
@@ -66,5 +67,5 @@ export function toAIFriendlyError(error: unknown, selector: string): Error {
     );
   }
 
-  return error instanceof Error ? error : new Error(message);
+  return toError(error);
 }

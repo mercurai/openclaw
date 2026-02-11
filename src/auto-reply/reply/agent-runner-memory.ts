@@ -16,6 +16,7 @@ import {
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { buildThreadingToolContext, resolveEnforceFinalTag } from "./agent-runner-utils.js";
 import {
   resolveMemoryFlushContextWindowTokens,
@@ -195,7 +196,7 @@ export async function runMemoryFlushIfNeeded(params: {
       }
     }
   } catch (err) {
-    logVerbose(`memory flush run failed: ${String(err)}`);
+    logVerbose(`memory flush run failed: ${formatErrorForLog(err)}`);
   }
 
   return activeSessionEntry;

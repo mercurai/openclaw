@@ -12,6 +12,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { LineGroupConfig, ResolvedLineAccount } from "./types.js";
 import { danger, logVerbose } from "../globals.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { resolvePairingIdLabel } from "../pairing/pairing-labels.js";
 import { buildPairingReply } from "../pairing/pairing-messages.js";
 import {
@@ -339,7 +340,7 @@ export async function handleLineWebhookEvents(
           logVerbose(`line: unhandled event type: ${(event as WebhookEvent).type}`);
       }
     } catch (err) {
-      context.runtime.error?.(danger(`line: event handler failed: ${String(err)}`));
+      context.runtime.error?.(danger(`line: event handler failed: ${formatErrorForLog(err)}`));
     }
   }
 }

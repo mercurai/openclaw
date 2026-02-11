@@ -2,6 +2,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import { withProgress } from "../cli/progress.js";
 import { loadConfig } from "../config/config.js";
 import { resolveGatewayService } from "../daemon/service.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { note } from "../terminal/note.js";
 import { confirm, select } from "./configure.shared.js";
 import { buildGatewayInstallPlan, gatewayInstallErrorHint } from "./daemon-install-helpers.js";
@@ -108,7 +109,7 @@ export async function maybeInstallDaemon(params: {
           });
           progress.setLabel("Gateway service installed.");
         } catch (err) {
-          installError = err instanceof Error ? err.message : String(err);
+          installError = formatErrorForUser(err);
           progress.setLabel("Gateway service install failed.");
         }
       },

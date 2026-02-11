@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import { isLoopbackHost } from "../gateway/net.js";
+import { toError } from "../infra/errors/index.js";
 import { rawDataToString } from "../infra/ws.js";
 import { getChromeExtensionRelayAuthHeaders } from "./extension-relay.js";
 
@@ -151,7 +152,7 @@ export async function withCdpSocket<T>(
   try {
     return await fn(send);
   } catch (err) {
-    closeWithError(err instanceof Error ? err : new Error(String(err)));
+    closeWithError(toError(err));
     throw err;
   } finally {
     try {

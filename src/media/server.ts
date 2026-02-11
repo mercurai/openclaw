@@ -69,11 +69,11 @@ export function attachMediaRoutes(
       });
     } catch (err) {
       if (err instanceof SafeOpenError) {
-        if (err.code === "invalid-path") {
+        if (err.fsErrorCode === "invalid-path") {
           res.status(400).send("invalid path");
           return;
         }
-        if (err.code === "not-found") {
+        if (err.fsErrorCode === "not-found") {
           res.status(404).send("not found");
           return;
         }

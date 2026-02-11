@@ -6,6 +6,7 @@ import type { EventFrame } from "../../gateway/protocol/index.js";
 import type { ExecApprovalDecision } from "../../infra/exec-approvals.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import { GatewayClient } from "../../gateway/client.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { logDebug, logError } from "../../logger.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../../utils/message-channel.js";
 import { createDiscordClient } from "../send.shared.js";
@@ -531,7 +532,7 @@ export class DiscordExecApprovalHandler {
       logDebug(`discord exec approvals: resolved ${approvalId} successfully`);
       return true;
     } catch (err) {
-      logError(`discord exec approvals: resolve failed: ${String(err)}`);
+      logError(`discord exec approvals: resolve failed: ${formatErrorForLog(err)}`);
       return false;
     }
   }

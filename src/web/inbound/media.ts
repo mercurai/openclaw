@@ -2,6 +2,7 @@ import type { proto, WAMessage } from "@whiskeysockets/baileys";
 import { downloadMediaMessage, normalizeMessageContent } from "@whiskeysockets/baileys";
 import type { createWaSocket } from "../session.js";
 import { logVerbose } from "../../globals.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 
 function unwrapMessage(message: proto.IMessage | undefined): proto.IMessage | undefined {
   const normalized = normalizeMessageContent(message);
@@ -45,7 +46,7 @@ export async function downloadInboundMedia(
     );
     return { buffer, mimetype, fileName };
   } catch (err) {
-    logVerbose(`downloadMediaMessage failed: ${String(err)}`);
+    logVerbose(`downloadMediaMessage failed: ${formatErrorForLog(err)}`);
     return undefined;
   }
 }

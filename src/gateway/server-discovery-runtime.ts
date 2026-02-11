@@ -1,4 +1,5 @@
 import { startGatewayBonjourAdvertiser } from "../infra/bonjour.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { pickPrimaryTailnetIPv4, pickPrimaryTailnetIPv6 } from "../infra/tailnet.js";
 import { resolveWideAreaDiscoveryDomain, writeWideAreaGatewayZone } from "../infra/widearea-dns.js";
 import {
@@ -53,7 +54,7 @@ export async function startGatewayDiscovery(params: {
       });
       bonjourStop = bonjour.stop;
     } catch (err) {
-      params.logDiscovery.warn(`bonjour advertising failed: ${String(err)}`);
+      params.logDiscovery.warn(`bonjour advertising failed: ${formatErrorForLog(err)}`);
     }
   }
 
@@ -91,7 +92,7 @@ export async function startGatewayDiscovery(params: {
           `wide-area DNS-SD ${result.changed ? "updated" : "unchanged"} (${wideAreaDomain} → ${result.zonePath})`,
         );
       } catch (err) {
-        params.logDiscovery.warn(`wide-area discovery update failed: ${String(err)}`);
+        params.logDiscovery.warn(`wide-area discovery update failed: ${formatErrorForLog(err)}`);
       }
     }
   }

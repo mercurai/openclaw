@@ -133,8 +133,12 @@ describe("hooks", () => {
       expect(errorHandler).toHaveBeenCalled();
       expect(successHandler).toHaveBeenCalled();
       expect(consoleError).toHaveBeenCalledWith(
-        expect.stringContaining("Hook error"),
-        expect.stringContaining("Handler failed"),
+        expect.stringContaining("Hook error [command:new]"),
+        expect.objectContaining({
+          errorCode: "PLUGIN_HOOK_FAILED",
+          errorName: "PluginError",
+          causeMessage: "Handler failed",
+        }),
       );
 
       consoleError.mockRestore();

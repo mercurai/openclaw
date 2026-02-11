@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { GatewayRequestHandlers } from "./types.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { getResolvedLoggerSettings } from "../../logging.js";
 import { clamp } from "../../utils.js";
 import {
@@ -173,7 +174,7 @@ export const logsHandlers: GatewayRequestHandlers = {
       respond(
         false,
         undefined,
-        errorShape(ErrorCodes.UNAVAILABLE, `log read failed: ${String(err)}`),
+        errorShape(ErrorCodes.UNAVAILABLE, `log read failed: ${formatErrorForLog(err)}`),
       );
     }
   },

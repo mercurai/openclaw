@@ -12,6 +12,7 @@ import type { OpenClawConfig } from "../../../config/config.js";
 import type { HookHandler } from "../../hooks.js";
 import { resolveAgentWorkspaceDir } from "../../../agents/agent-scope.js";
 import { resolveStateDir } from "../../../config/paths.js";
+import { errorLogContext } from "../../../infra/errors/index.js";
 import { createSubsystemLogger } from "../../../logging/subsystem.js";
 import { resolveAgentIdFromSessionKey } from "../../../routing/session-key.js";
 import { resolveHookConfig } from "../../config.js";
@@ -178,15 +179,7 @@ const saveSessionToMemory: HookHandler = async (event) => {
     const relPath = memoryFilePath.replace(os.homedir(), "~");
     log.info(`Session context saved to ${relPath}`);
   } catch (err) {
-    if (err instanceof Error) {
-      log.error("Failed to save session memory", {
-        errorName: err.name,
-        errorMessage: err.message,
-        stack: err.stack,
-      });
-    } else {
-      log.error("Failed to save session memory", { error: String(err) });
-    }
+    log.error("Failed to save session memory", errorLogContext(err));
   }
 };
 

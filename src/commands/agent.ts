@@ -49,6 +49,7 @@ import {
   emitAgentEvent,
   registerAgentRunContext,
 } from "../infra/agent-events.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
@@ -488,7 +489,7 @@ export async function agentCommand(
             phase: "error",
             startedAt,
             endedAt: Date.now(),
-            error: String(err),
+            error: formatErrorForLog(err),
           },
         });
       }

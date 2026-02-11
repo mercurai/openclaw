@@ -7,7 +7,7 @@ import type {
   Response,
 } from "playwright-core";
 import { chromium } from "playwright-core";
-import { formatErrorMessage } from "../infra/errors.js";
+import { BrowserError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { getHeadersWithAuth } from "./cdp.helpers.js";
 import { getChromeWebSocketUrl } from "./chrome.js";
 
@@ -351,8 +351,9 @@ async function connectBrowser(cdpUrl: string): Promise<ConnectedBrowser> {
     if (lastErr instanceof Error) {
       throw lastErr;
     }
-    const message = lastErr ? formatErrorMessage(lastErr) : "CDP connect failed";
-    throw new Error(message);
+    throw new BrowserError("CDP connect failed", OpenClawErrorCodes.BROWSER_NAVIGATION_FAILED, {
+      cause: lastErr,
+    });
   };
 
   connecting = connectWithRetry().finally(() => {

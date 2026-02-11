@@ -19,6 +19,7 @@ import {
 import { recordHookInstall } from "../hooks/installs.js";
 import { loadWorkspaceHookEntries } from "../hooks/workspace.js";
 import { resolveArchiveKind } from "../infra/archive.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
@@ -456,9 +457,7 @@ export function registerHooksCli(program: Command): void {
         const report = buildHooksReport(config);
         defaultRuntime.log(formatHooksList(report, opts));
       } catch (err) {
-        defaultRuntime.error(
-          `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
-        );
+        defaultRuntime.error(`${theme.error("Error:")} ${formatErrorForUser(err)}`);
         process.exit(1);
       }
     });
@@ -473,9 +472,7 @@ export function registerHooksCli(program: Command): void {
         const report = buildHooksReport(config);
         defaultRuntime.log(formatHookInfo(report, name, opts));
       } catch (err) {
-        defaultRuntime.error(
-          `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
-        );
+        defaultRuntime.error(`${theme.error("Error:")} ${formatErrorForUser(err)}`);
         process.exit(1);
       }
     });
@@ -490,9 +487,7 @@ export function registerHooksCli(program: Command): void {
         const report = buildHooksReport(config);
         defaultRuntime.log(formatHooksCheck(report, opts));
       } catch (err) {
-        defaultRuntime.error(
-          `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
-        );
+        defaultRuntime.error(`${theme.error("Error:")} ${formatErrorForUser(err)}`);
         process.exit(1);
       }
     });
@@ -504,9 +499,7 @@ export function registerHooksCli(program: Command): void {
       try {
         await enableHook(name);
       } catch (err) {
-        defaultRuntime.error(
-          `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
-        );
+        defaultRuntime.error(`${theme.error("Error:")} ${formatErrorForUser(err)}`);
         process.exit(1);
       }
     });
@@ -518,9 +511,7 @@ export function registerHooksCli(program: Command): void {
       try {
         await disableHook(name);
       } catch (err) {
-        defaultRuntime.error(
-          `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
-        );
+        defaultRuntime.error(`${theme.error("Error:")} ${formatErrorForUser(err)}`);
         process.exit(1);
       }
     });
@@ -852,9 +843,7 @@ export function registerHooksCli(program: Command): void {
       const report = buildHooksReport(config);
       defaultRuntime.log(formatHooksList(report, {}));
     } catch (err) {
-      defaultRuntime.error(
-        `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
-      );
+      defaultRuntime.error(`${theme.error("Error:")} ${formatErrorForUser(err)}`);
       process.exit(1);
     }
   });

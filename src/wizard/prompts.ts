@@ -1,3 +1,5 @@
+import { OpenClawError, OpenClawErrorCodes } from "../infra/errors/index.js";
+
 export type WizardSelectOption<T = string> = {
   value: T;
   label: string;
@@ -44,9 +46,12 @@ export type WizardPrompter = {
   progress: (label: string) => WizardProgress;
 };
 
-export class WizardCancelledError extends Error {
+export class WizardCancelledError extends OpenClawError {
   constructor(message = "wizard cancelled") {
-    super(message);
+    super(message, {
+      code: OpenClawErrorCodes.INTERNAL_ERROR,
+      context: { errorType: "wizard-cancelled" },
+    });
     this.name = "WizardCancelledError";
   }
 }

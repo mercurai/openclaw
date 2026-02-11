@@ -8,6 +8,7 @@ import {
   type Tool,
 } from "@mariozechner/pi-ai";
 import { Type } from "@sinclair/typebox";
+import { formatErrorForUser } from "../infra/errors/index.js";
 
 const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 const DEFAULT_TIMEOUT_MS = 12_000;
@@ -302,7 +303,7 @@ async function probeTool(
     return {
       ok: false,
       latencyMs: Date.now() - startedAt,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
     };
   }
 }
@@ -339,7 +340,7 @@ async function probeImage(
     return {
       ok: false,
       latencyMs: Date.now() - startedAt,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
     };
   }
 }

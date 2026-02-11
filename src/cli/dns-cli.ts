@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { loadConfig } from "../config/config.js";
+import { toError } from "../infra/errors/index.js";
 import { pickPrimaryTailnetIPv4, pickPrimaryTailnetIPv6 } from "../infra/tailnet.js";
 import { getWideAreaZonePath, resolveWideAreaDiscoveryDomain } from "../infra/widearea-dns.js";
 import { defaultRuntime } from "../runtime.js";
@@ -37,7 +38,7 @@ function writeFileSudoIfNeeded(filePath: string, content: string): void {
   } catch (err) {
     const code = (err as { code?: string }).code;
     if (code !== "EACCES" && code !== "EPERM") {
-      throw err instanceof Error ? err : new Error(String(err));
+      throw toError(err);
     }
   }
 
@@ -61,7 +62,7 @@ function mkdirSudoIfNeeded(dirPath: string): void {
   } catch (err) {
     const code = (err as { code?: string }).code;
     if (code !== "EACCES" && code !== "EPERM") {
-      throw err instanceof Error ? err : new Error(String(err));
+      throw toError(err);
     }
   }
 

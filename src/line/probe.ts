@@ -1,5 +1,6 @@
 import { messagingApi } from "@line/bot-sdk";
 import type { LineProbeResult } from "./types.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 
 export async function probeLineBot(
   channelAccessToken: string,
@@ -26,8 +27,7 @@ export async function probeLineBot(
       },
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: message };
+    return { ok: false, error: formatErrorForUser(err) };
   }
 }
 

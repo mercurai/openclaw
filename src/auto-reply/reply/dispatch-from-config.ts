@@ -6,6 +6,8 @@ import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { loadSessionStore, resolveStorePath } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import {
   logMessageProcessed,
   logMessageQueued,
@@ -438,7 +440,7 @@ export async function dispatchReplyFromConfig(params: {
         }
       } catch (err) {
         logVerbose(
-          `dispatch-from-config: accumulated block TTS failed: ${err instanceof Error ? err.message : String(err)}`,
+          `dispatch-from-config: accumulated block TTS failed: ${formatErrorForUser(err)}`,
         );
       }
     }
@@ -451,7 +453,7 @@ export async function dispatchReplyFromConfig(params: {
     markIdle("message_completed");
     return { queuedFinal, counts };
   } catch (err) {
-    recordProcessed("error", { error: String(err) });
+    recordProcessed("error", { error: formatErrorForLog(err) });
     markIdle("message_error");
     throw err;
   }

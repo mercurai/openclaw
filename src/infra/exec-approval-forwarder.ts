@@ -9,6 +9,7 @@ import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
 import { isDeliverableMessageChannel, normalizeMessageChannel } from "../utils/message-channel.js";
+import { formatErrorForLog } from "./errors/index.js";
 import { deliverOutboundPayloads } from "./outbound/deliver.js";
 import { resolveSessionDeliveryTarget } from "./outbound/targets.js";
 
@@ -233,7 +234,9 @@ async function deliverToTargets(params: {
         payloads: [{ text: params.text }],
       });
     } catch (err) {
-      log.error(`exec approvals: failed to deliver to ${channel}:${target.to}: ${String(err)}`);
+      log.error(
+        `exec approvals: failed to deliver to ${channel}:${target.to}: ${formatErrorForLog(err)}`,
+      );
     }
   });
   await Promise.allSettled(deliveries);

@@ -16,6 +16,7 @@ import {
 } from "../agents/tool-policy.js";
 import { loadConfig } from "../config/config.js";
 import { resolveMainSessionKey } from "../config/sessions.js";
+import { ToolError, formatErrorForUser } from "../infra/errors/index.js";
 import { logWarn } from "../logger.js";
 import { isTestDefaultMemorySlotDisabled } from "../plugins/config-state.js";
 import { getPluginToolMeta } from "../plugins/tools.js";
@@ -317,9 +318,10 @@ export async function handleToolsInvokeHttpRequest(
     const result = await (tool as any).execute?.(`http-${Date.now()}`, toolArgs);
     sendJson(res, 200, { ok: true, result });
   } catch (err) {
+    const toolErr = ToolError.executionFailed("http-tool", err);
     sendJson(res, 400, {
       ok: false,
-      error: { type: "tool_error", message: err instanceof Error ? err.message : String(err) },
+      error: { type: "tool_error", message: formatErrorForUser(toolErr) },
     });
   }
 

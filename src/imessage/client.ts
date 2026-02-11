@@ -1,6 +1,7 @@
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { createInterface, type Interface } from "node:readline";
 import type { RuntimeEnv } from "../runtime.js";
+import { toError } from "../infra/errors/index.js";
 import { resolveUserPath } from "../utils.js";
 import { DEFAULT_IMESSAGE_PROBE_TIMEOUT_MS } from "./constants.js";
 
@@ -92,7 +93,7 @@ export class IMessageRpcClient {
     });
 
     child.on("error", (err) => {
-      this.failAll(err instanceof Error ? err : new Error(String(err)));
+      this.failAll(toError(err));
       this.closedResolve?.();
     });
 
@@ -177,8 +178,7 @@ export class IMessageRpcClient {
     try {
       parsed = JSON.parse(line) as IMessageRpcResponse<unknown>;
     } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      this.runtime?.error?.(`imsg rpc: failed to parse ${line}: ${detail}`);
+      this.runtime?.error?.(`imsg rpc: failed to parse ${line}: ${toError(err).message}`);
       return;
     }
 

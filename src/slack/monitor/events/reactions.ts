@@ -2,6 +2,7 @@ import type { SlackEventMiddlewareArgs } from "@slack/bolt";
 import type { SlackMonitorContext } from "../context.js";
 import type { SlackReactionEvent } from "../types.js";
 import { danger } from "../../../globals.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
 
@@ -47,7 +48,7 @@ export function registerSlackReactionEvents(params: { ctx: SlackMonitorContext }
         contextKey: `slack:reaction:${action}:${item.channel}:${item.ts}:${event.user}:${emojiLabel}`,
       });
     } catch (err) {
-      ctx.runtime.error?.(danger(`slack reaction handler failed: ${String(err)}`));
+      ctx.runtime.error?.(danger(`slack reaction handler failed: ${formatErrorForLog(err)}`));
     }
   };
 

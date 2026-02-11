@@ -11,6 +11,7 @@ import {
   publicKeyRawBase64UrlFromPem,
   signDevicePayload,
 } from "../infra/device-identity.js";
+import { formatErrorForLog, GatewayError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { normalizeFingerprint } from "../infra/tls/fingerprint.js";
 import { rawDataToString } from "../infra/ws.js";
 import { logDebug, logError } from "../logger.js";
@@ -327,11 +328,19 @@ export class GatewayClient {
         if (parsed.ok) {
           pending.resolve(parsed.payload);
         } else {
-          pending.reject(new Error(parsed.error?.message ?? "unknown error"));
+          pending.reject(
+            new GatewayError(
+              parsed.error?.message ?? "unknown error",
+              OpenClawErrorCodes.GATEWAY_REQUEST_FAILED,
+              {
+                context: { requestId: parsed.id, errorCode: parsed.error?.code },
+              },
+            ),
+          );
         }
       }
     } catch (err) {
-      logDebug(`gateway client parse error: ${String(err)}`);
+      logDebug(`gateway client parse error: ${formatErrorForLog(err)}`);
     }
   }
 

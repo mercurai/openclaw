@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { isTruthyEnvValue } from "./env.js";
+import { formatErrorForUser } from "./errors/index.js";
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_MAX_BUFFER_BYTES = 2 * 1024 * 1024;
@@ -78,7 +79,7 @@ export function loadShellEnvFallback(opts: ShellEnvFallbackOptions): ShellEnvFal
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = formatErrorForUser(err);
     logger.warn(`[openclaw] shell env fallback failed: ${msg}`);
     lastAppliedKeys = [];
     return { ok: false, error: msg, applied: [] };

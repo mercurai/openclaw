@@ -7,6 +7,7 @@ import { chunkMarkdownText } from "../auto-reply/chunk.js";
 import { dispatchReplyWithBufferedBlockDispatcher } from "../auto-reply/reply/provider-dispatcher.js";
 import { createReplyPrefixOptions } from "../channels/reply-prefix.js";
 import { danger, logVerbose } from "../globals.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { normalizePluginHttpPath } from "../plugins/http-path.js";
 import { registerPluginHttpRoute } from "../plugins/http-registry.js";
 import { deliverLineAutoReply } from "./auto-reply-delivery.js";
@@ -264,7 +265,7 @@ export async function monitorLineProvider(
           logVerbose(`line: no response generated for message from ${ctxPayload.From}`);
         }
       } catch (err) {
-        runtime.error?.(danger(`line: auto-reply failed: ${String(err)}`));
+        runtime.error?.(danger(`line: auto-reply failed: ${formatErrorForLog(err)}`));
 
         // Send error message to user
         if (replyToken) {
@@ -346,7 +347,7 @@ export async function monitorLineProvider(
           });
         }
       } catch (err) {
-        runtime.error?.(danger(`line webhook error: ${String(err)}`));
+        runtime.error?.(danger(`line webhook error: ${formatErrorForLog(err)}`));
         if (!res.headersSent) {
           res.statusCode = 500;
           res.setHeader("Content-Type", "application/json");

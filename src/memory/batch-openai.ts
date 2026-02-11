@@ -1,4 +1,5 @@
 import type { OpenAiEmbeddingClient } from "./embeddings-openai.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { retryAsync } from "../infra/retry.js";
 import { hashText } from "./internal.js";
 
@@ -193,7 +194,7 @@ async function readOpenAiBatchError(params: {
         : undefined);
     return message;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     return message ? `error file unavailable: ${message}` : undefined;
   }
 }

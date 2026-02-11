@@ -1,5 +1,6 @@
 import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { mediaKindFromMime } from "../media/constants.js";
 import { saveMediaBuffer } from "../media/store.js";
 import { loadWebMedia } from "../web/media.js";
@@ -35,7 +36,9 @@ type SignalTarget =
 function parseTarget(raw: string): SignalTarget {
   let value = raw.trim();
   if (!value) {
-    throw new Error("Signal recipient is required");
+    throw new ChannelError("Signal recipient is required", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal", recipient: raw },
+    });
   }
   const lower = value.toLowerCase();
   if (lower.startsWith("signal:")) {
@@ -110,7 +113,9 @@ function resolveSignalRpcContext(
       : undefined);
   const baseUrl = opts.baseUrl?.trim() || resolvedAccount?.baseUrl;
   if (!baseUrl) {
-    throw new Error("Signal base URL is required");
+    throw new ChannelError("Signal base URL is required", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal" },
+    });
   }
   const account = opts.account?.trim() || resolvedAccount?.config.account?.trim();
   return { baseUrl, account };
@@ -187,7 +192,13 @@ export async function sendMessageSignal(
   }
 
   if (!message.trim() && (!attachments || attachments.length === 0)) {
-    throw new Error("Signal send requires text or media");
+    throw new ChannelError(
+      "Signal send requires text or media",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "signal", to },
+      },
+    );
   }
 
   const params: Record<string, unknown> = { message };
@@ -209,7 +220,9 @@ export async function sendMessageSignal(
     username: true,
   });
   if (!targetParams) {
-    throw new Error("Signal recipient is required");
+    throw new ChannelError("Signal recipient is required", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      context: { channel: "signal", to },
+    });
   }
   Object.assign(params, targetParams);
 

@@ -2,7 +2,6 @@ import { cancel, isCancel } from "@clack/prompts";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { inspect } from "node:util";
 import type { OpenClawConfig } from "../config/config.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { NodeManagerChoice, OnboardMode, ResetScope } from "./onboard-types.js";
@@ -12,6 +11,7 @@ import { resolveSessionTranscriptsDirForAgent } from "../config/sessions.js";
 import { callGateway } from "../gateway/call.js";
 import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
 import { pickPrimaryLanIPv4, isValidIPv4 } from "../gateway/net.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { isSafeExecutableValue } from "../infra/exec-safety.js";
 import { pickPrimaryTailnetIPv4 } from "../infra/tailnet.js";
 import { isWSL } from "../infra/wsl.js";
@@ -416,14 +416,7 @@ export async function waitForGatewayReachable(params: {
 }
 
 function summarizeError(err: unknown): string {
-  let raw = "unknown error";
-  if (err instanceof Error) {
-    raw = err.message || raw;
-  } else if (typeof err === "string") {
-    raw = err || raw;
-  } else if (err !== undefined) {
-    raw = inspect(err, { depth: 2 });
-  }
+  const raw = formatErrorForUser(err);
   const line =
     raw
       .split("\n")

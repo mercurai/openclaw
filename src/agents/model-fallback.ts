@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { FailoverReason } from "./pi-embedded-helpers.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import {
   ensureAuthProfileStore,
   isProfileInCooldown,
@@ -369,7 +370,7 @@ export async function runWithImageModelFallback<T>(params: {
       attempts.push({
         provider: candidate.provider,
         model: candidate.model,
-        error: err instanceof Error ? err.message : String(err),
+        error: formatErrorForUser(err),
       });
       await params.onError?.({
         provider: candidate.provider,

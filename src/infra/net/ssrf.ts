@@ -1,6 +1,7 @@
 import { lookup as dnsLookupCb, type LookupAddress } from "node:dns";
 import { lookup as dnsLookup } from "node:dns/promises";
 import { Agent, type Dispatcher } from "undici";
+import { OpenClawError, OpenClawErrorCodes } from "../errors/index.js";
 
 type LookupCallback = (
   err: NodeJS.ErrnoException | null,
@@ -8,9 +9,12 @@ type LookupCallback = (
   family?: number,
 ) => void;
 
-export class SsrFBlockedError extends Error {
-  constructor(message: string) {
-    super(message);
+export class SsrFBlockedError extends OpenClawError {
+  constructor(message: string, context?: { hostname?: string; address?: string }) {
+    super(message, {
+      code: OpenClawErrorCodes.INTERNAL_ERROR,
+      context: { errorType: "ssrf-blocked", security: true, ...context },
+    });
     this.name = "SsrFBlockedError";
   }
 }

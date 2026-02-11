@@ -3,6 +3,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { PluginLogger } from "./types.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { loadConfig } from "../config/config.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadOpenClawPlugins } from "./loader.js";
 
@@ -53,7 +54,7 @@ export function registerPluginCliCommands(program: Command, cfg?: OpenClawConfig
         existingCommands.add(command);
       }
     } catch (err) {
-      log.warn(`plugin CLI register failed (${entry.pluginId}): ${String(err)}`);
+      log.warn(`plugin CLI register failed (${entry.pluginId}): ${formatErrorForLog(err)}`);
     }
   }
 }

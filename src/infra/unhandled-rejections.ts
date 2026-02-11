@@ -1,5 +1,6 @@
 import process from "node:process";
 import { extractErrorCode, formatUncaughtError } from "./errors.js";
+import { formatErrorForLog } from "./errors/index.js";
 
 type UnhandledRejectionHandler = (reason: unknown) => boolean;
 
@@ -131,10 +132,7 @@ export function isUnhandledRejectionHandled(reason: unknown): boolean {
         return true;
       }
     } catch (err) {
-      console.error(
-        "[openclaw] Unhandled rejection handler failed:",
-        err instanceof Error ? (err.stack ?? err.message) : err,
-      );
+      console.error("[openclaw] Unhandled rejection handler failed:", formatErrorForLog(err));
     }
   }
   return false;

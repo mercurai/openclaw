@@ -26,6 +26,9 @@ export function hasErrnoCode(err: unknown, code: string): boolean {
   return isErrno(err) && err.code === code;
 }
 
+/**
+ * @deprecated Use formatErrorForUser from src/infra/errors/index.ts
+ */
 export function formatErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     return err.message || err.name || "Error";

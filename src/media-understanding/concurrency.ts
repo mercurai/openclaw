@@ -1,4 +1,5 @@
 import { logVerbose, shouldLogVerbose } from "../globals.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 
 export async function runWithConcurrency<T>(
   tasks: Array<() => Promise<T>>,
@@ -22,7 +23,7 @@ export async function runWithConcurrency<T>(
         results[index] = await tasks[index]();
       } catch (err) {
         if (shouldLogVerbose()) {
-          logVerbose(`Media understanding task failed: ${String(err)}`);
+          logVerbose(`Media understanding task failed: ${formatErrorForLog(err)}`);
         }
       }
     }

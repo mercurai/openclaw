@@ -12,6 +12,7 @@ import { logVerbose } from "../globals.js";
 import { recordChannelActivity } from "../infra/channel-activity.js";
 import { isDiagnosticFlagEnabled } from "../infra/diagnostic-flags.js";
 import { formatErrorMessage, formatUncaughtError } from "../infra/errors.js";
+import { ChannelError, formatErrorForLog, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { createTelegramRetryRunner } from "../infra/retry-policy.js";
 import { redactSensitiveText } from "../logging/redact.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -114,8 +115,12 @@ function resolveToken(explicit: string | undefined, params: { accountId: string;
     return explicit.trim();
   }
   if (!params.token) {
-    throw new Error(
+    throw new ChannelError(
       `Telegram bot token missing for account "${params.accountId}" (set channels.telegram.accounts.${params.accountId}.botToken/tokenFile or TELEGRAM_BOT_TOKEN for default).`,
+      OpenClawErrorCodes.CHANNEL_AUTH_FAILED,
+      {
+        context: { channel: "telegram", accountId: params.accountId },
+      },
     );
   }
   return params.token.trim();
@@ -124,7 +129,13 @@ function resolveToken(explicit: string | undefined, params: { accountId: string;
 function normalizeChatId(to: string): string {
   const trimmed = to.trim();
   if (!trimmed) {
-    throw new Error("Recipient is required for Telegram sends");
+    throw new ChannelError(
+      "Recipient is required for Telegram sends",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "telegram", reason: "empty recipient" },
+      },
+    );
   }
 
   // Common internal prefixes that sometimes leak into outbound sends.
@@ -142,7 +153,13 @@ function normalizeChatId(to: string): string {
   }
 
   if (!normalized) {
-    throw new Error("Recipient is required for Telegram sends");
+    throw new ChannelError(
+      "Recipient is required for Telegram sends",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "telegram", reason: "empty normalized recipient" },
+      },
+    );
   }
   if (normalized.startsWith("@")) {
     return normalized;
@@ -166,14 +183,26 @@ function normalizeMessageId(raw: string | number): number {
   if (typeof raw === "string") {
     const value = raw.trim();
     if (!value) {
-      throw new Error("Message id is required for Telegram actions");
+      throw new ChannelError(
+        "Message id is required for Telegram actions",
+        OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+        {
+          context: { channel: "telegram", reason: "empty message_id" },
+        },
+      );
     }
     const parsed = Number.parseInt(value, 10);
     if (Number.isFinite(parsed)) {
       return parsed;
     }
   }
-  throw new Error("Message id is required for Telegram actions");
+  throw new ChannelError(
+    "Message id is required for Telegram actions",
+    OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+    {
+      context: { channel: "telegram", reason: "invalid message_id", raw: String(raw) },
+    },
+  );
 }
 
 function isTelegramThreadNotFoundError(err: unknown): boolean {
@@ -288,13 +317,7 @@ export async function sendMessageTelegram(
     if (!/400: Bad Request: chat not found/i.test(formatErrorMessage(err))) {
       return err;
     }
-    return new Error(
-      [
-        `Telegram send failed: chat not found (chat_id=${chatId}).`,
-        "Likely: bot not started in DM, bot removed from group/channel, group migrated (new -100… id), or wrong bot token.",
-        `Input was: ${JSON.stringify(to)}.`,
-      ].join(" "),
-    );
+    return ChannelError.sendFailed("telegram", chatId, err);
   };
 
   const sendWithThreadFallback = async <T>(
@@ -313,7 +336,7 @@ export async function sendMessageTelegram(
       }
       if (opts.verbose) {
         console.warn(
-          `telegram ${label} failed with message_thread_id, retrying without thread: ${formatErrorMessage(err)}`,
+          `telegram ${label} failed with message_thread_id, retrying without thread: ${formatErrorForLog(err)}`,
         );
       }
       const retriedParams = removeMessageThreadIdParam(params);
@@ -360,7 +383,9 @@ export async function sendMessageTelegram(
         const errText = formatErrorMessage(err);
         if (PARSE_ERR_RE.test(errText)) {
           if (opts.verbose) {
-            console.warn(`telegram HTML parse failed, retrying as plain text: ${errText}`);
+            console.warn(
+              `telegram HTML parse failed, retrying as plain text: ${formatErrorForLog(err)}`,
+            );
           }
           const fallback = fallbackText ?? rawText;
           const plainParams = hasBaseParams
@@ -569,7 +594,13 @@ export async function sendMessageTelegram(
   }
 
   if (!text || !text.trim()) {
-    throw new Error("Message must be non-empty for Telegram sends");
+    throw new ChannelError(
+      "Message must be non-empty for Telegram sends",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "telegram", reason: "empty message text" },
+      },
+    );
   }
   const textParams =
     hasThreadParams || replyMarkup
@@ -755,7 +786,9 @@ export async function editMessageTelegram(
     const errText = formatErrorMessage(err);
     if (PARSE_ERR_RE.test(errText)) {
       if (opts.verbose) {
-        console.warn(`telegram HTML parse failed, retrying as plain text: ${errText}`);
+        console.warn(
+          `telegram HTML parse failed, retrying as plain text: ${formatErrorForLog(err)}`,
+        );
       }
       const plainParams: Record<string, unknown> = {};
       if (replyMarkup !== undefined) {
@@ -813,7 +846,13 @@ export async function sendStickerTelegram(
   opts: TelegramStickerOpts = {},
 ): Promise<TelegramSendResult> {
   if (!fileId?.trim()) {
-    throw new Error("Telegram sticker file_id is required");
+    throw new ChannelError(
+      "Telegram sticker file_id is required",
+      OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+      {
+        context: { channel: "telegram", reason: "empty sticker file_id" },
+      },
+    );
   }
 
   const cfg = loadConfig();
@@ -854,13 +893,7 @@ export async function sendStickerTelegram(
     if (!/400: Bad Request: chat not found/i.test(formatErrorMessage(err))) {
       return err;
     }
-    return new Error(
-      [
-        `Telegram send failed: chat not found (chat_id=${chatId}).`,
-        "Likely: bot not started in DM, bot removed from group/channel, group migrated (new -100… id), or wrong bot token.",
-        `Input was: ${JSON.stringify(to)}.`,
-      ].join(" "),
-    );
+    return ChannelError.sendFailed("telegram", chatId, err);
   };
 
   const sendWithThreadFallback = async <T>(
@@ -879,7 +912,7 @@ export async function sendStickerTelegram(
       }
       if (opts.verbose) {
         console.warn(
-          `telegram ${label} failed with message_thread_id, retrying without thread: ${formatErrorMessage(err)}`,
+          `telegram ${label} failed with message_thread_id, retrying without thread: ${formatErrorForLog(err)}`,
         );
       }
       const retriedParams = removeMessageThreadIdParam(params) as

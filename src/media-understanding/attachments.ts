@@ -292,7 +292,7 @@ export class MediaAttachmentCache {
         size: fetched.buffer.length,
       };
     } catch (err) {
-      if (err instanceof MediaFetchError && err.code === "max_bytes") {
+      if (err instanceof MediaFetchError && err.mediaErrorCode === "max_bytes") {
         throw new MediaUnderstandingSkipError(
           "maxBytes",
           `Attachment ${params.attachmentIndex + 1} exceeds maxBytes ${params.maxBytes}`,

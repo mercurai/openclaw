@@ -9,6 +9,7 @@ import {
   resolveArchiveKind,
   resolvePackedRootDir,
 } from "../infra/archive.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { scanDirectoryWithSummary } from "../security/skill-scanner.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
@@ -155,14 +156,14 @@ async function installPluginFromPackageDir(params: {
   try {
     manifest = await readJsonFile<PackageManifest>(manifestPath);
   } catch (err) {
-    return { ok: false, error: `invalid package.json: ${String(err)}` };
+    return { ok: false, error: `invalid package.json: ${formatErrorForLog(err)}` };
   }
 
   let extensions: string[];
   try {
     extensions = await ensureOpenClawExtensions(manifest);
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   }
 
   const pkgName = typeof manifest.name === "string" ? manifest.name : "";
@@ -260,7 +261,7 @@ async function installPluginFromPackageDir(params: {
       await fs.rm(targetDir, { recursive: true, force: true }).catch(() => undefined);
       await fs.rename(backupDir, targetDir).catch(() => undefined);
     }
-    return { ok: false, error: `failed to copy plugin: ${String(err)}` };
+    return { ok: false, error: `failed to copy plugin: ${formatErrorForLog(err)}` };
   }
 
   for (const entry of extensions) {
@@ -343,14 +344,14 @@ export async function installPluginFromArchive(params: {
       logger,
     });
   } catch (err) {
-    return { ok: false, error: `failed to extract archive: ${String(err)}` };
+    return { ok: false, error: `failed to extract archive: ${formatErrorForLog(err)}` };
   }
 
   let packageDir = "";
   try {
     packageDir = await resolvePackedRootDir(extractDir);
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   }
 
   return await installPluginFromPackageDir({

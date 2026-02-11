@@ -3,15 +3,19 @@ import type { FileHandle } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { OpenClawError, OpenClawErrorCodes } from "./errors/index.js";
 
 export type SafeOpenErrorCode = "invalid-path" | "not-found";
 
-export class SafeOpenError extends Error {
-  code: SafeOpenErrorCode;
+export class SafeOpenError extends OpenClawError {
+  fsErrorCode: SafeOpenErrorCode;
 
-  constructor(code: SafeOpenErrorCode, message: string) {
-    super(message);
-    this.code = code;
+  constructor(fsErrorCode: SafeOpenErrorCode, message: string) {
+    super(message, {
+      code: OpenClawErrorCodes.INTERNAL_ERROR,
+      context: { errorType: "fs-safe", fsErrorCode },
+    });
+    this.fsErrorCode = fsErrorCode;
     this.name = "SafeOpenError";
   }
 }

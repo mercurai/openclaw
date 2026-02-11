@@ -1,7 +1,7 @@
 import type { Llama, LlamaEmbeddingContext, LlamaModel } from "node-llama-cpp";
 import fsSync from "node:fs";
 import type { OpenClawConfig } from "../config/config.js";
-import { formatErrorMessage } from "../infra/errors.js";
+import { toError } from "../infra/errors/index.js";
 import { resolveUserPath } from "../utils.js";
 import { createGeminiEmbeddingProvider, type GeminiEmbeddingClient } from "./embeddings-gemini.js";
 import { createOpenAiEmbeddingProvider, type OpenAiEmbeddingClient } from "./embeddings-openai.js";
@@ -74,7 +74,7 @@ function canAutoSelectLocal(options: EmbeddingProviderOptions): boolean {
 }
 
 function isMissingApiKeyError(err: unknown): boolean {
-  const message = formatErrorMessage(err);
+  const message = toError(err).message;
   return message.includes("No API key found for provider");
 }
 
@@ -150,7 +150,7 @@ export async function createEmbeddingProvider(
   };
 
   const formatPrimaryError = (err: unknown, provider: "openai" | "local" | "gemini" | "voyage") =>
-    provider === "local" ? formatLocalSetupError(err) : formatErrorMessage(err);
+    provider === "local" ? formatLocalSetupError(err) : toError(err).message;
 
   if (requestedProvider === "auto") {
     const missingKeyErrors: string[] = [];
@@ -203,7 +203,7 @@ export async function createEmbeddingProvider(
       } catch (fallbackErr) {
         // oxlint-disable-next-line preserve-caught-error
         throw new Error(
-          `${reason}\n\nFallback to ${fallback} failed: ${formatErrorMessage(fallbackErr)}`,
+          `${reason}\n\nFallback to ${fallback} failed: ${toError(fallbackErr).message}`,
           { cause: fallbackErr },
         );
       }
@@ -224,7 +224,7 @@ function isNodeLlamaCppMissing(err: unknown): boolean {
 }
 
 function formatLocalSetupError(err: unknown): string {
-  const detail = formatErrorMessage(err);
+  const detail = toError(err).message;
   const missing = isNodeLlamaCppMissing(err);
   return [
     "Local embeddings unavailable.",

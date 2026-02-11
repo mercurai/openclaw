@@ -1,4 +1,5 @@
 import { callGateway } from "../../gateway/call.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../../utils/message-channel.js";
 import { withProgress } from "../progress.js";
 
@@ -33,7 +34,7 @@ export async function probeGatewayStatus(opts: {
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
     } as const;
   }
 }

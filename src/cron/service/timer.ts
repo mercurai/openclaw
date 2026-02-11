@@ -1,6 +1,7 @@
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob } from "../types.js";
 import type { CronEvent, CronServiceState } from "./state.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { DEFAULT_AGENT_ID } from "../../routing/session-key.js";
 import { resolveCronDeliveryPlan } from "../delivery.js";
 import { sweepCronRunSessions } from "../session-reaper.js";
@@ -147,7 +148,7 @@ export function armTimer(state: CronServiceState) {
     try {
       await onTimer(state);
     } catch (err) {
-      state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
+      state.deps.log.error({ err: formatErrorForLog(err) }, "cron: timer tick failed");
     }
   }, clampedDelay);
   state.deps.log.debug(
@@ -223,12 +224,12 @@ export async function onTimer(state: CronServiceState) {
       } catch (err) {
         state.deps.log.warn(
           { jobId: id, jobName: job.name, timeoutMs: jobTimeoutMs },
-          `cron: job failed: ${String(err)}`,
+          `cron: job failed: ${formatErrorForLog(err)}`,
         );
         results.push({
           jobId: id,
           status: "error",
-          error: String(err),
+          error: formatErrorForLog(err),
           startedAt,
           endedAt: state.deps.nowMs(),
         });
@@ -303,7 +304,10 @@ export async function onTimer(state: CronServiceState) {
             log: state.deps.log,
           });
         } catch (err) {
-          state.deps.log.warn({ err: String(err), storePath }, "cron: session reaper sweep failed");
+          state.deps.log.warn(
+            { err: formatErrorForLog(err), storePath },
+            "cron: session reaper sweep failed",
+          );
         }
       }
     }
@@ -506,7 +510,7 @@ export async function executeJob(
   try {
     coreResult = await executeJobCore(state, job);
   } catch (err) {
-    coreResult = { status: "error", error: String(err) };
+    coreResult = { status: "error", error: formatErrorForLog(err) };
   }
 
   const endedAt = state.deps.nowMs();

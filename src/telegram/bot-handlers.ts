@@ -17,6 +17,7 @@ import { loadConfig } from "../config/config.js";
 import { writeConfigFile } from "../config/io.js";
 import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { danger, logVerbose, warn } from "../globals.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { readChannelAllowFromStore } from "../pairing/pairing-store.js";
 import { resolveAgentRoute } from "../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../routing/session-key.js";
@@ -133,7 +134,7 @@ export const registerTelegramHandlers = ({
       );
     },
     onError: (err) => {
-      runtime.error?.(danger(`telegram debounce flush failed: ${String(err)}`));
+      runtime.error?.(danger(`telegram debounce flush failed: ${formatErrorForLog(err)}`));
     },
   });
 
@@ -219,7 +220,7 @@ export const registerTelegramHandlers = ({
       const storeAllowFrom = await readChannelAllowFromStore("telegram").catch(() => []);
       await processMessage(primaryEntry.ctx, allMedia, storeAllowFrom);
     } catch (err) {
-      runtime.error?.(danger(`media group handler failed: ${String(err)}`));
+      runtime.error?.(danger(`media group handler failed: ${formatErrorForLog(err)}`));
     }
   };
 
@@ -259,7 +260,7 @@ export const registerTelegramHandlers = ({
         { messageIdOverride: String(last.msg.message_id) },
       );
     } catch (err) {
-      runtime.error?.(danger(`text fragment handler failed: ${String(err)}`));
+      runtime.error?.(danger(`text fragment handler failed: ${formatErrorForLog(err)}`));
     }
   };
 
@@ -609,7 +610,7 @@ export const registerTelegramHandlers = ({
         messageIdOverride: callback.id,
       });
     } catch (err) {
-      runtime.error?.(danger(`callback handler failed: ${String(err)}`));
+      runtime.error?.(danger(`callback handler failed: ${formatErrorForLog(err)}`));
     }
   });
 
@@ -661,7 +662,9 @@ export const registerTelegramHandlers = ({
         );
       }
     } catch (err) {
-      runtime.error?.(danger(`[telegram] Group migration handler failed: ${String(err)}`));
+      runtime.error?.(
+        danger(`[telegram] Group migration handler failed: ${formatErrorForLog(err)}`),
+      );
     }
   });
 
@@ -922,7 +925,7 @@ export const registerTelegramHandlers = ({
         botUsername: ctx.me?.username,
       });
     } catch (err) {
-      runtime.error?.(danger(`handler failed: ${String(err)}`));
+      runtime.error?.(danger(`handler failed: ${formatErrorForLog(err)}`));
     }
   });
 };

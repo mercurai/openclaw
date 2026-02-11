@@ -28,6 +28,7 @@ import { createTypingCallbacks } from "../../channels/typing.js";
 import { resolveChannelGroupRequireMention } from "../../config/group-policy.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../../config/sessions.js";
 import { danger, logVerbose, shouldLogVerbose } from "../../globals.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { mediaKindFromMime } from "../../media/constants.js";
 import { buildPairingReply } from "../../pairing/pairing-messages.js";
@@ -604,7 +605,7 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
           mediaType = fetched.contentType ?? firstAttachment.contentType ?? undefined;
         }
       } catch (err) {
-        deps.runtime.error?.(danger(`attachment fetch failed: ${String(err)}`));
+        deps.runtime.error?.(danger(`attachment fetch failed: ${formatErrorForLog(err)}`));
       }
     }
 

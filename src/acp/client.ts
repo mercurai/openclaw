@@ -8,6 +8,7 @@ import {
 import { spawn, type ChildProcess } from "node:child_process";
 import * as readline from "node:readline";
 import { Readable, Writable } from "node:stream";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
 
 export type AcpClientOptions = {
@@ -174,7 +175,7 @@ export async function runAcpClientInteractive(opts: AcpClientOptions = {}): Prom
         });
         console.log(`\n[${response.stopReason}]\n`);
       } catch (err) {
-        console.error(`\n[error] ${String(err)}\n`);
+        console.error(`\n[error] ${formatErrorForLog(err)}\n`);
       }
 
       prompt();

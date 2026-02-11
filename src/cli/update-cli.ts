@@ -16,6 +16,7 @@ import {
 } from "../commands/status.update.js";
 import { readConfigFileSnapshot, writeConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { formatDurationPrecise } from "../infra/format-time/format-duration.ts";
 import { resolveOpenClawPackageRoot } from "../infra/openclaw-root.js";
 import { trimLogTail } from "../infra/restart-sentinel.js";
@@ -1065,14 +1066,14 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
             nonInteractive: !interactiveDoctor,
           });
         } catch (err) {
-          defaultRuntime.log(theme.warn(`Doctor failed: ${String(err)}`));
+          defaultRuntime.log(theme.warn(`Doctor failed: ${formatErrorForLog(err)}`));
         } finally {
           delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
         }
       }
     } catch (err) {
       if (!opts.json) {
-        defaultRuntime.log(theme.warn(`Daemon restart failed: ${String(err)}`));
+        defaultRuntime.log(theme.warn(`Daemon restart failed: ${formatErrorForLog(err)}`));
         defaultRuntime.log(
           theme.muted(
             `You may need to restart the service manually: ${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}`,

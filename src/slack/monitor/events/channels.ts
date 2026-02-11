@@ -8,6 +8,7 @@ import type {
 import { resolveChannelConfigWrites } from "../../../channels/plugins/config-writes.js";
 import { loadConfig, writeConfigFile } from "../../../config/config.js";
 import { danger, warn } from "../../../globals.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { migrateSlackChannelConfig } from "../../channel-migration.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
@@ -45,7 +46,9 @@ export function registerSlackChannelEvents(params: { ctx: SlackMonitorContext })
           contextKey: `slack:channel:created:${channelId ?? channelName ?? "unknown"}`,
         });
       } catch (err) {
-        ctx.runtime.error?.(danger(`slack channel created handler failed: ${String(err)}`));
+        ctx.runtime.error?.(
+          danger(`slack channel created handler failed: ${formatErrorForLog(err)}`),
+        );
       }
     },
   );
@@ -80,7 +83,9 @@ export function registerSlackChannelEvents(params: { ctx: SlackMonitorContext })
           contextKey: `slack:channel:renamed:${channelId ?? channelName ?? "unknown"}`,
         });
       } catch (err) {
-        ctx.runtime.error?.(danger(`slack channel rename handler failed: ${String(err)}`));
+        ctx.runtime.error?.(
+          danger(`slack channel rename handler failed: ${formatErrorForLog(err)}`),
+        );
       }
     },
   );
@@ -154,7 +159,9 @@ export function registerSlackChannelEvents(params: { ctx: SlackMonitorContext })
           );
         }
       } catch (err) {
-        ctx.runtime.error?.(danger(`slack channel_id_changed handler failed: ${String(err)}`));
+        ctx.runtime.error?.(
+          danger(`slack channel_id_changed handler failed: ${formatErrorForLog(err)}`),
+        );
       }
     },
   );

@@ -17,6 +17,7 @@ import {
 import { resolveGatewayService } from "../daemon/service.js";
 import { renderSystemdUnavailableHints } from "../daemon/systemd-hints.js";
 import { isSystemdUserServiceAvailable } from "../daemon/systemd.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { formatPortDiagnostics, inspectPortUsage } from "../infra/ports.js";
 import { isWSL } from "../infra/wsl.js";
 import { note } from "../terminal/note.js";
@@ -189,7 +190,7 @@ export async function maybeRepairGatewayDaemon(params: {
             environment,
           });
         } catch (err) {
-          note(`Gateway service install failed: ${String(err)}`, "Gateway");
+          note(`Gateway service install failed: ${formatErrorForLog(err)}`, "Gateway");
           note(gatewayInstallErrorHint(), "Gateway");
         }
       }

@@ -20,6 +20,7 @@ import { createReplyPrefixOptions } from "../../channels/reply-prefix.js";
 import { resolveNativeCommandsEnabled, resolveNativeSkillsEnabled } from "../../config/commands.js";
 import { resolveMarkdownTableMode } from "../../config/markdown-tables.js";
 import { danger, logVerbose } from "../../globals.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { buildPairingReply } from "../../pairing/pairing-messages.js";
 import {
   readChannelAllowFromStore,
@@ -485,7 +486,7 @@ export function registerSlackMonitorSlashCommands(params: {
         });
       }
     } catch (err) {
-      runtime.error?.(danger(`slack slash handler failed: ${String(err)}`));
+      runtime.error?.(danger(`slack slash handler failed: ${formatErrorForLog(err)}`));
       await respond({
         text: "Sorry, something went wrong handling that command.",
         response_type: "ephemeral",

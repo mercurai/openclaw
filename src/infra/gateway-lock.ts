@@ -3,6 +3,7 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { resolveConfigPath, resolveGatewayLockDir, resolveStateDir } from "../config/paths.js";
+import { OpenClawError, OpenClawErrorCodes } from "./errors/index.js";
 
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_POLL_INTERVAL_MS = 100;
@@ -30,12 +31,13 @@ export type GatewayLockOptions = {
   platform?: NodeJS.Platform;
 };
 
-export class GatewayLockError extends Error {
-  constructor(
-    message: string,
-    public readonly cause?: unknown,
-  ) {
-    super(message);
+export class GatewayLockError extends OpenClawError {
+  constructor(message: string, cause?: unknown) {
+    super(message, {
+      code: OpenClawErrorCodes.INTERNAL_ERROR,
+      cause,
+      context: { errorType: "gateway-lock" },
+    });
     this.name = "GatewayLockError";
   }
 }

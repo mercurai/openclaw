@@ -1,3 +1,4 @@
+import { formatErrorForLog } from "../../infra/errors/index.js";
 export function parseConfigValue(raw: string): {
   value?: unknown;
   error?: string;
@@ -11,7 +12,7 @@ export function parseConfigValue(raw: string): {
     try {
       return { value: JSON.parse(trimmed) };
     } catch (err) {
-      return { error: `Invalid JSON: ${String(err)}` };
+      return { error: `Invalid JSON: ${formatErrorForLog(err)}` };
     }
   }
 

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { PluginConfigUiHint, PluginKind } from "./types.js";
 import { MANIFEST_KEY } from "../compat/legacy-names.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { isRecord } from "../utils.js";
 
 export const PLUGIN_MANIFEST_FILENAME = "openclaw.plugin.json";
@@ -52,7 +53,7 @@ export function loadPluginManifest(rootDir: string): PluginManifestLoadResult {
   } catch (err) {
     return {
       ok: false,
-      error: `failed to parse plugin manifest: ${String(err)}`,
+      error: `failed to parse plugin manifest: ${formatErrorForLog(err)}`,
       manifestPath,
     };
   }

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
 import { loadDotEnv } from "../infra/dotenv.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
 import {
   loadShellEnvFallback,
@@ -208,7 +209,7 @@ export function parseConfigJson5(
   try {
     return { ok: true, parsed: json5.parse(raw) };
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, error: formatErrorForLog(err) };
   }
 }
 
@@ -392,7 +393,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         const message =
           err instanceof ConfigIncludeError
             ? err.message
-            : `Include resolution failed: ${String(err)}`;
+            : `Include resolution failed: ${formatErrorForLog(err)}`;
         return {
           path: configPath,
           exists: true,
@@ -420,7 +421,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         const message =
           err instanceof MissingEnvVarError
             ? err.message
-            : `Env var substitution failed: ${String(err)}`;
+            : `Env var substitution failed: ${formatErrorForLog(err)}`;
         return {
           path: configPath,
           exists: true,
@@ -484,7 +485,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         valid: false,
         config: {},
         hash: hashConfigRaw(null),
-        issues: [{ path: "", message: `read failed: ${String(err)}` }],
+        issues: [{ path: "", message: `read failed: ${formatErrorForLog(err)}` }],
         warnings: [],
         legacyIssues: [],
       };

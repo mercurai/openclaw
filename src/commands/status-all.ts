@@ -11,6 +11,7 @@ import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
 import { probeGateway } from "../gateway/probe.js";
 import { collectChannelStatusIssues } from "../infra/channels-status-issues.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { resolveOpenClawPackageRoot } from "../infra/openclaw-root.js";
 import { resolveOsSummary } from "../infra/os-summary.js";
 import { inspectPortUsage } from "../infra/ports.js";
@@ -70,7 +71,7 @@ export async function statusAllCommand(
           backendState: null,
           dnsName: null,
           ips: [] as string[],
-          error: String(err),
+          error: formatErrorForLog(err),
         };
       }
     })();

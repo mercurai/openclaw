@@ -3,6 +3,7 @@ import type { OpenClawConfig } from "../../config/config.js";
 import type { MemoryCitationsMode } from "../../config/types.memory.js";
 import type { MemorySearchResult } from "../../memory/types.js";
 import type { AnyAgentTool } from "./common.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { resolveMemoryBackendConfig } from "../../memory/backend-config.js";
 import { getMemorySearchManager } from "../../memory/index.js";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
@@ -80,7 +81,7 @@ export function createMemorySearchTool(options: {
           citations: citationsMode,
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForUser(err);
         return jsonResult({ results: [], disabled: true, error: message });
       }
     },
@@ -127,7 +128,7 @@ export function createMemoryGetTool(options: {
         });
         return jsonResult(result);
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForUser(err);
         return jsonResult({ path: relPath, text: "", disabled: true, error: message });
       }
     },

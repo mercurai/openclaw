@@ -8,6 +8,7 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import type { OpenClawConfig } from "../config/config.js";
 import { hasBinary } from "../agents/skills.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { ensureTailscaleEndpoint } from "./gmail-setup-utils.js";
@@ -55,7 +56,7 @@ async function startGmailWatch(
     log.info(`watch started for ${cfg.account}`);
     return true;
   } catch (err) {
-    log.error(`watch start error: ${String(err)}`);
+    log.error(`watch start error: ${formatErrorForLog(err)}`);
     return false;
   }
 }
@@ -167,10 +168,10 @@ export async function startGmailWatcher(cfg: OpenClawConfig): Promise<GmailWatch
         `tailscale ${runtimeConfig.tailscale.mode} configured for port ${runtimeConfig.serve.port}`,
       );
     } catch (err) {
-      log.error(`tailscale setup failed: ${String(err)}`);
+      log.error(`tailscale setup failed: ${formatErrorForLog(err)}`);
       return {
         started: false,
-        reason: `tailscale setup failed: ${String(err)}`,
+        reason: `tailscale setup failed: ${formatErrorForLog(err)}`,
       };
     }
   }

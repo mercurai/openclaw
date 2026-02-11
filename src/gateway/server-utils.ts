@@ -10,6 +10,9 @@ export function normalizeVoiceWakeTriggers(input: unknown): string[] {
   return cleaned.length > 0 ? cleaned : defaultVoiceWakeTriggers();
 }
 
+/**
+ * @deprecated Use formatErrorForLog from src/infra/errors/index.ts
+ */
 export function formatError(err: unknown): string {
   if (err instanceof Error) {
     return err.message;

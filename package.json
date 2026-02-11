@@ -37,6 +37,7 @@
     "canvas:a2ui:bundle": "bash scripts/bundle-a2ui.sh",
     "check": "pnpm format:check && pnpm tsgo && pnpm lint",
     "check:docs": "pnpm format:docs:check && pnpm lint:docs && pnpm docs:check-links",
+    "check:errors": "node --import tsx scripts/check-error-patterns.ts",
     "check:loc": "node --import tsx scripts/check-ts-max-loc.ts --max 500",
     "dev": "node scripts/run-node.mjs",
     "docs:bin": "node scripts/build-docs-list.mjs",

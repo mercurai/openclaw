@@ -1,3 +1,4 @@
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { resolveFetch } from "../infra/fetch.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 import { normalizeDiscordToken } from "./token.js";
@@ -149,7 +150,7 @@ export async function probeDiscord(
     return {
       ...result,
       status: err instanceof Response ? err.status : result.status,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
       elapsedMs: Date.now() - started,
     };
   }

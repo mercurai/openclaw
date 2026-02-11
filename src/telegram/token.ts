@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import type { OpenClawConfig } from "../config/config.js";
 import type { TelegramAccountConfig } from "../config/types.telegram.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
 
 export type TelegramTokenSource = "env" | "tokenFile" | "config" | "none";
@@ -58,7 +59,7 @@ export function resolveTelegramToken(
       }
     } catch (err) {
       opts.logMissingFile?.(
-        `channels.telegram.accounts.${accountId}.tokenFile read failed: ${String(err)}`,
+        `channels.telegram.accounts.${accountId}.tokenFile read failed: ${formatErrorForLog(err)}`,
       );
       return { token: "", source: "none" };
     }
@@ -83,7 +84,7 @@ export function resolveTelegramToken(
         return { token, source: "tokenFile" };
       }
     } catch (err) {
-      opts.logMissingFile?.(`channels.telegram.tokenFile read failed: ${String(err)}`);
+      opts.logMissingFile?.(`channels.telegram.tokenFile read failed: ${formatErrorForLog(err)}`);
       return { token: "", source: "none" };
     }
   }

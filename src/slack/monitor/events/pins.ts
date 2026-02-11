@@ -2,6 +2,7 @@ import type { SlackEventMiddlewareArgs } from "@slack/bolt";
 import type { SlackMonitorContext } from "../context.js";
 import type { SlackPinEvent } from "../types.js";
 import { danger } from "../../../globals.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
 
@@ -43,7 +44,7 @@ export function registerSlackPinEvents(params: { ctx: SlackMonitorContext }) {
         contextKey: `slack:pin:added:${channelId ?? "unknown"}:${messageId ?? "unknown"}`,
       });
     } catch (err) {
-      ctx.runtime.error?.(danger(`slack pin added handler failed: ${String(err)}`));
+      ctx.runtime.error?.(danger(`slack pin added handler failed: ${formatErrorForLog(err)}`));
     }
   });
 
@@ -82,7 +83,7 @@ export function registerSlackPinEvents(params: { ctx: SlackMonitorContext }) {
         contextKey: `slack:pin:removed:${channelId ?? "unknown"}:${messageId ?? "unknown"}`,
       });
     } catch (err) {
-      ctx.runtime.error?.(danger(`slack pin removed handler failed: ${String(err)}`));
+      ctx.runtime.error?.(danger(`slack pin removed handler failed: ${formatErrorForLog(err)}`));
     }
   });
 }

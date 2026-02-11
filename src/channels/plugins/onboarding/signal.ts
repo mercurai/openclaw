@@ -5,6 +5,7 @@ import type { ChannelOnboardingAdapter, ChannelOnboardingDmPolicy } from "../onb
 import { formatCliCommand } from "../../../cli/command-format.js";
 import { detectBinary } from "../../../commands/onboard-helpers.js";
 import { installSignalCli } from "../../../commands/signal-install.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../../routing/session-key.js";
 import {
   listSignalAccountIds,
@@ -229,7 +230,7 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
             await prompter.note(result.error ?? "signal-cli install failed.", "Signal");
           }
         } catch (err) {
-          await prompter.note(`signal-cli install failed: ${String(err)}`, "Signal");
+          await prompter.note(`signal-cli install failed: ${formatErrorForLog(err)}`, "Signal");
         }
       }
     }

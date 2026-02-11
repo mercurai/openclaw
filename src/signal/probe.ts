@@ -1,3 +1,4 @@
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { signalCheck, signalRpcRequest } from "./client.js";
 
 export type SignalProbe = {
@@ -46,7 +47,7 @@ export async function probeSignal(baseUrl: string, timeoutMs: number): Promise<S
     });
     result.version = parseSignalVersion(version);
   } catch (err) {
-    result.error = err instanceof Error ? err.message : String(err);
+    result.error = formatErrorForUser(err);
   }
   return {
     ...result,

@@ -28,6 +28,7 @@ import {
   type GatewayClientName,
 } from "../../utils/message-channel.js";
 import { loadWebMedia } from "../../web/media.js";
+import { formatErrorForUser } from "../errors/index.js";
 import { throwIfAborted } from "./abort.js";
 import {
   listConfiguredMessageChannels,
@@ -706,7 +707,7 @@ async function handleBroadcastAction(
           channel: targetChannel,
           to: target,
           ok: false,
-          error: err instanceof Error ? err.message : String(err),
+          error: formatErrorForUser(err),
         });
       }
     }

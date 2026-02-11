@@ -3,6 +3,7 @@ import { withProgress } from "../cli/progress.js";
 import { loadConfig, resolveGatewayPort } from "../config/config.js";
 import { probeGateway } from "../gateway/probe.js";
 import { discoverGatewayBeacons } from "../infra/bonjour-discovery.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { resolveSshConfig } from "../infra/ssh-config.js";
 import { parseSshTarget, startSshPortForward } from "../infra/ssh-tunnel.js";
 import { resolveWideAreaDiscoveryDomain } from "../infra/widearea-dns.js";
@@ -95,7 +96,7 @@ export async function gatewayStatusCommand(
           sshTunnelStarted = true;
           return tunnel;
         } catch (err) {
-          sshTunnelError = err instanceof Error ? err.message : String(err);
+          sshTunnelError = formatErrorForUser(err);
           return null;
         }
       };

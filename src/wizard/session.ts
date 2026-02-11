@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { OpenClawError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { WizardCancelledError, type WizardProgress, type WizardPrompter } from "./prompts.js";
 
 export type WizardStepOption = {
@@ -130,7 +131,10 @@ class WizardSessionPrompter implements WizardPrompter {
             : "";
     const error = params.validate?.(value);
     if (error) {
-      throw new Error(error);
+      throw new OpenClawError(error, {
+        code: OpenClawErrorCodes.TOOL_VALIDATION_FAILED,
+        context: { errorType: "wizard-validation" },
+      });
     }
     return value;
   }
@@ -192,7 +196,10 @@ export class WizardSession {
   async answer(stepId: string, value: unknown): Promise<void> {
     const deferred = this.answerDeferred.get(stepId);
     if (!deferred) {
-      throw new Error("wizard: no pending step");
+      throw new OpenClawError("wizard: no pending step", {
+        code: OpenClawErrorCodes.INTERNAL_ERROR,
+        context: { errorType: "wizard-state", stepId },
+      });
     }
     this.answerDeferred.delete(stepId);
     this.currentStep = null;
@@ -237,7 +244,10 @@ export class WizardSession {
 
   async awaitAnswer(step: WizardStep): Promise<unknown> {
     if (this.status !== "running") {
-      throw new Error("wizard: session not running");
+      throw new OpenClawError("wizard: session not running", {
+        code: OpenClawErrorCodes.INTERNAL_ERROR,
+        context: { errorType: "wizard-state", status: this.status },
+      });
     }
     this.pushStep(step);
     const deferred = createDeferred<unknown>();

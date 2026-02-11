@@ -1,4 +1,5 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
+import { formatErrorForUser } from "../../../../src/infra/errors/index.js";
 import { cloneConfigObject, removePathValue, setPathValue } from "./config/form-utils.ts";
 
 export type ExecApprovalsDefaults = {
@@ -97,7 +98,7 @@ export async function loadExecApprovals(
     const res = await state.client.request<ExecApprovalsSnapshot>(rpc.method, rpc.params);
     applyExecApprovalsSnapshot(state, res);
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.execApprovalsLoading = false;
   }
@@ -138,7 +139,7 @@ export async function saveExecApprovals(
     state.execApprovalsDirty = false;
     await loadExecApprovals(state, target);
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.execApprovalsSaving = false;
   }

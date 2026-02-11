@@ -1,5 +1,6 @@
 import type { BrowserRouteContext } from "../server-context.js";
 import type { BrowserRequest, BrowserResponse, BrowserRouteRegistrar } from "./types.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { escapeRegExp } from "../../utils.js";
 import { registerBrowserRoutes } from "./index.js";
 
@@ -112,7 +113,7 @@ export function createBrowserRouteDispatcher(ctx: BrowserRouteContext) {
           res,
         );
       } catch (err) {
-        return { status: 500, body: { error: String(err) } };
+        return { status: 500, body: { error: formatErrorForLog(err) } };
       }
 
       return { status, body: payload };

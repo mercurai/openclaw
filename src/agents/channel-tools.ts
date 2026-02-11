@@ -7,6 +7,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import { getChannelDock } from "../channels/dock.js";
 import { getChannelPlugin, listChannelPlugins } from "../channels/plugins/index.js";
 import { normalizeAnyChannelId } from "../channels/registry.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { defaultRuntime } from "../runtime.js";
 
 /**
@@ -103,7 +104,7 @@ function runPluginListActions(
 }
 
 function logListActionsError(pluginId: string, err: unknown) {
-  const message = err instanceof Error ? err.message : String(err);
+  const message = formatErrorForUser(err);
   const key = `${pluginId}:${message}`;
   if (loggedListActionErrors.has(key)) {
     return;

@@ -1,5 +1,6 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ConfigSchemaResponse, ConfigSnapshot, ConfigUiHints } from "../types.ts";
+import { formatErrorForUser } from "../../../../src/infra/errors/index.js";
 import {
   cloneConfigObject,
   removePathValue,
@@ -44,7 +45,7 @@ export async function loadConfig(state: ConfigState) {
     const res = await state.client.request<ConfigSnapshot>("config.get", {});
     applyConfigSnapshot(state, res);
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.configLoading = false;
   }
@@ -62,7 +63,7 @@ export async function loadConfigSchema(state: ConfigState) {
     const res = await state.client.request<ConfigSchemaResponse>("config.schema", {});
     applyConfigSchema(state, res);
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.configSchemaLoading = false;
   }
@@ -119,7 +120,7 @@ export async function saveConfig(state: ConfigState) {
     state.configFormDirty = false;
     await loadConfig(state);
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.configSaving = false;
   }
@@ -149,7 +150,7 @@ export async function applyConfig(state: ConfigState) {
     state.configFormDirty = false;
     await loadConfig(state);
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.configApplying = false;
   }
@@ -166,7 +167,7 @@ export async function runUpdate(state: ConfigState) {
       sessionKey: state.applySessionKey,
     });
   } catch (err) {
-    state.lastError = String(err);
+    state.lastError = formatErrorForUser(err);
   } finally {
     state.updateRunning = false;
   }

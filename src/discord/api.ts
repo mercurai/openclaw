@@ -1,3 +1,4 @@
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { resolveFetch } from "../infra/fetch.js";
 import { resolveRetryConfig, retryAsync, type RetryConfig } from "../infra/retry.js";
 
@@ -77,12 +78,17 @@ function formatDiscordApiErrorText(text: string): string | undefined {
   return retryAfter ? `${message} (retry after ${retryAfter})` : message;
 }
 
-export class DiscordApiError extends Error {
+export class DiscordApiError extends ChannelError {
   status: number;
   retryAfter?: number;
 
   constructor(message: string, status: number, retryAfter?: number) {
-    super(message);
+    super(message, OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+      retryable: status >= 500 || status === 429,
+      retryAfterMs: retryAfter ? retryAfter * 1000 : undefined,
+      context: { channel: "discord", status, retryAfter },
+    });
+    this.name = "DiscordApiError";
     this.status = status;
     this.retryAfter = retryAfter;
   }

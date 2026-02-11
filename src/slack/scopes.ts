@@ -1,4 +1,5 @@
 import type { WebClient } from "@slack/web-api";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { isRecord } from "../utils.js";
 import { createSlackWebClient } from "./client.js";
 
@@ -84,7 +85,7 @@ async function callSlack(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: formatErrorForUser(err),
     };
   }
 }

@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig } from "./types.js";
+import { ConfigError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../routing/session-key.js";
 import { resolveUserPath } from "../utils.js";
@@ -11,11 +12,17 @@ export type DuplicateAgentDir = {
   agentIds: string[];
 };
 
-export class DuplicateAgentDirError extends Error {
+export class DuplicateAgentDirError extends ConfigError {
   readonly duplicates: DuplicateAgentDir[];
 
   constructor(duplicates: DuplicateAgentDir[]) {
-    super(formatDuplicateAgentDirError(duplicates));
+    super(formatDuplicateAgentDirError(duplicates), OpenClawErrorCodes.CONFIG_VALIDATION_FAILED, {
+      context: {
+        errorType: "duplicate-agent-dirs",
+        duplicateCount: duplicates.length,
+        duplicates,
+      },
+    });
     this.name = "DuplicateAgentDirError";
     this.duplicates = duplicates;
   }

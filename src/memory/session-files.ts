@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { redactSensitiveText } from "../logging/redact.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { hashText } from "./internal.js";
@@ -119,7 +120,7 @@ export async function buildSessionEntry(absPath: string): Promise<SessionFileEnt
       content,
     };
   } catch (err) {
-    log.debug(`Failed reading session file ${absPath}: ${String(err)}`);
+    log.debug(`Failed reading session file ${absPath}: ${formatErrorForLog(err)}`);
     return null;
   }
 }

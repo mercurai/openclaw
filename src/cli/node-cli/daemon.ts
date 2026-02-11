@@ -14,6 +14,7 @@ import { resolveGatewayLogPaths } from "../../daemon/launchd.js";
 import { resolveNodeService } from "../../daemon/node-service.js";
 import { renderSystemdUnavailableHints } from "../../daemon/systemd-hints.js";
 import { isSystemdUserServiceAvailable } from "../../daemon/systemd.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { isWSL } from "../../infra/wsl.js";
 import { loadNodeHostConfig } from "../../node-host/config.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -160,7 +161,7 @@ export async function runNodeDaemonInstall(opts: NodeDaemonInstallOptions) {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Node service check failed: ${String(err)}`);
+    fail(`Node service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (loaded && !opts.force) {
@@ -209,7 +210,7 @@ export async function runNodeDaemonInstall(opts: NodeDaemonInstallOptions) {
       description,
     });
   } catch (err) {
-    fail(`Node install failed: ${String(err)}`);
+    fail(`Node install failed: ${formatErrorForLog(err)}`);
     return;
   }
 
@@ -265,7 +266,7 @@ export async function runNodeDaemonUninstall(opts: NodeDaemonLifecycleOptions = 
   try {
     await service.uninstall({ env: process.env, stdout });
   } catch (err) {
-    fail(`Node uninstall failed: ${String(err)}`);
+    fail(`Node uninstall failed: ${formatErrorForLog(err)}`);
     return;
   }
 
@@ -317,7 +318,7 @@ export async function runNodeDaemonStart(opts: NodeDaemonLifecycleOptions = {}) 
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Node service check failed: ${String(err)}`);
+    fail(`Node service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (!loaded) {
@@ -347,7 +348,7 @@ export async function runNodeDaemonStart(opts: NodeDaemonLifecycleOptions = {}) 
     await service.restart({ env: process.env, stdout });
   } catch (err) {
     const hints = renderNodeServiceStartHints();
-    fail(`Node start failed: ${String(err)}`, hints);
+    fail(`Node start failed: ${formatErrorForLog(err)}`, hints);
     return;
   }
 
@@ -399,7 +400,7 @@ export async function runNodeDaemonRestart(opts: NodeDaemonLifecycleOptions = {}
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Node service check failed: ${String(err)}`);
+    fail(`Node service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (!loaded) {
@@ -429,7 +430,7 @@ export async function runNodeDaemonRestart(opts: NodeDaemonLifecycleOptions = {}
     await service.restart({ env: process.env, stdout });
   } catch (err) {
     const hints = renderNodeServiceStartHints();
-    fail(`Node restart failed: ${String(err)}`, hints);
+    fail(`Node restart failed: ${formatErrorForLog(err)}`, hints);
     return;
   }
 
@@ -480,7 +481,7 @@ export async function runNodeDaemonStop(opts: NodeDaemonLifecycleOptions = {}) {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    fail(`Node service check failed: ${String(err)}`);
+    fail(`Node service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (!loaded) {
@@ -498,7 +499,7 @@ export async function runNodeDaemonStop(opts: NodeDaemonLifecycleOptions = {}) {
   try {
     await service.stop({ env: process.env, stdout });
   } catch (err) {
-    fail(`Node stop failed: ${String(err)}`);
+    fail(`Node stop failed: ${formatErrorForLog(err)}`);
     return;
   }
 

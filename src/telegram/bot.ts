@@ -23,6 +23,7 @@ import {
 import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { danger, logVerbose, shouldLogVerbose } from "../globals.js";
 import { formatUncaughtError } from "../infra/errors.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
 import { getChildLogger } from "../logging.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -216,7 +217,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
           raw.length > MAX_RAW_UPDATE_CHARS ? `${raw.slice(0, MAX_RAW_UPDATE_CHARS)}...` : raw;
         rawUpdateLogger.debug(`telegram update: ${preview}`);
       } catch (err) {
-        rawUpdateLogger.debug(`telegram update log failed: ${String(err)}`);
+        rawUpdateLogger.debug(`telegram update log failed: ${formatErrorForLog(err)}`);
       }
     }
     await next();
@@ -281,7 +282,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       });
       botHasTopicsEnabled = Boolean(me?.has_topics_enabled);
     } catch (err) {
-      logVerbose(`telegram getMe failed: ${String(err)}`);
+      logVerbose(`telegram getMe failed: ${formatErrorForLog(err)}`);
       botHasTopicsEnabled = false;
     }
     return botHasTopicsEnabled;
@@ -314,7 +315,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
         return true;
       }
     } catch (err) {
-      logVerbose(`Failed to load session for activation check: ${String(err)}`);
+      logVerbose(`Failed to load session for activation check: ${formatErrorForLog(err)}`);
     }
     return undefined;
   };
@@ -470,7 +471,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
         logVerbose(`telegram: reaction event enqueued: ${text}`);
       }
     } catch (err) {
-      runtime.error?.(danger(`telegram reaction handler failed: ${String(err)}`));
+      runtime.error?.(danger(`telegram reaction handler failed: ${formatErrorForLog(err)}`));
     }
   });
 

@@ -1,10 +1,16 @@
+import { OpenClawError, OpenClawErrorCodes } from "../infra/errors/index.js";
+
 export type MediaUnderstandingSkipReason = "maxBytes" | "timeout" | "unsupported" | "empty";
 
-export class MediaUnderstandingSkipError extends Error {
+export class MediaUnderstandingSkipError extends OpenClawError {
   readonly reason: MediaUnderstandingSkipReason;
 
-  constructor(reason: MediaUnderstandingSkipReason, message: string) {
-    super(message);
+  constructor(reason: MediaUnderstandingSkipReason, message: string, cause?: unknown) {
+    super(message, {
+      code: OpenClawErrorCodes.TOOL_EXECUTION_FAILED,
+      cause,
+      context: { errorType: "media-understanding-skip", reason },
+    });
     this.reason = reason;
     this.name = "MediaUnderstandingSkipError";
   }

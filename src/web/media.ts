@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import { logVerbose, shouldLogVerbose } from "../globals.js";
+import { ChannelError, OpenClawErrorCodes } from "../infra/errors/index.js";
 import { type MediaKind, maxBytesForKind, mediaKindFromMime } from "../media/constants.js";
 import { fetchRemoteMedia } from "../media/fetch.js";
 import {
@@ -130,7 +131,13 @@ async function loadWebMediaInternal(
     try {
       mediaUrl = fileURLToPath(mediaUrl);
     } catch {
-      throw new Error(`Invalid file:// URL: ${mediaUrl}`);
+      throw new ChannelError(
+        `Invalid file:// URL: ${mediaUrl}`,
+        OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+        {
+          context: { channel: "whatsapp", mediaUrl },
+        },
+      );
     }
   }
 
@@ -144,7 +151,13 @@ async function loadWebMediaInternal(
     logOptimizedImage({ originalSize, optimized });
 
     if (optimized.buffer.length > cap) {
-      throw new Error(formatCapReduce("Media", cap, optimized.buffer.length));
+      throw new ChannelError(
+        formatCapReduce("Media", cap, optimized.buffer.length),
+        OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+        {
+          context: { channel: "whatsapp", cap, size: optimized.buffer.length },
+        },
+      );
     }
 
     const contentType = optimized.format === "png" ? "image/png" : "image/jpeg";
@@ -174,7 +187,13 @@ async function loadWebMediaInternal(
       const isGif = params.contentType === "image/gif";
       if (isGif || !optimizeImages) {
         if (params.buffer.length > cap) {
-          throw new Error(formatCapLimit(isGif ? "GIF" : "Media", cap, params.buffer.length));
+          throw new ChannelError(
+            formatCapLimit(isGif ? "GIF" : "Media", cap, params.buffer.length),
+            OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+            {
+              context: { channel: "whatsapp", cap, size: params.buffer.length, isGif },
+            },
+          );
         }
         return {
           buffer: params.buffer,
@@ -191,7 +210,13 @@ async function loadWebMediaInternal(
       };
     }
     if (params.buffer.length > cap) {
-      throw new Error(formatCapLimit("Media", cap, params.buffer.length));
+      throw new ChannelError(
+        formatCapLimit("Media", cap, params.buffer.length),
+        OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+        {
+          context: { channel: "whatsapp", cap, size: params.buffer.length, kind: params.kind },
+        },
+      );
     }
     return {
       buffer: params.buffer,
@@ -281,7 +306,14 @@ export async function optimizeImageToJpeg(
     try {
       source = await convertHeicToJpeg(buffer);
     } catch (err) {
-      throw new Error(`HEIC image conversion failed: ${String(err)}`, { cause: err });
+      throw new ChannelError(
+        "HEIC image conversion failed",
+        OpenClawErrorCodes.CHANNEL_SEND_FAILED,
+        {
+          cause: err,
+          context: { channel: "whatsapp", contentType: opts.contentType, fileName: opts.fileName },
+        },
+      );
     }
   }
   const sides = [2048, 1536, 1280, 1024, 800];
@@ -329,7 +361,9 @@ export async function optimizeImageToJpeg(
     };
   }
 
-  throw new Error("Failed to optimize image");
+  throw new ChannelError("Failed to optimize image", OpenClawErrorCodes.CHANNEL_SEND_FAILED, {
+    context: { channel: "whatsapp", maxBytes },
+  });
 }
 
 export { optimizeImageToPng };

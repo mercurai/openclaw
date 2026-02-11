@@ -4,6 +4,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { buildModelAliasIndex, modelKey } from "../agents/model-selection.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 import { applyPrimaryModel } from "./model-picker.js";
 import { normalizeAlias } from "./models/shared.js";
@@ -98,7 +99,7 @@ function resolveAliasError(params: {
   try {
     normalized = normalizeAlias(trimmed);
   } catch (err) {
-    return err instanceof Error ? err.message : "Alias is invalid.";
+    return formatErrorForUser(err);
   }
   const aliasIndex = buildModelAliasIndex({
     cfg: params.cfg,
@@ -135,20 +136,7 @@ function buildAnthropicHeaders(apiKey: string) {
 }
 
 function formatVerificationError(error: unknown): string {
-  if (!error) {
-    return "unknown error";
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return "unknown error";
-  }
+  return formatErrorForUser(error);
 }
 
 type VerificationResult = {

@@ -1,5 +1,6 @@
 import type { BrowserRouteContext, ProfileContext } from "../server-context.js";
 import type { BrowserRequest, BrowserResponse } from "./types.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { parseBooleanValue } from "../../utils/boolean.js";
 
 /**
@@ -28,7 +29,7 @@ export function getProfileContext(
   try {
     return ctx.forProfile(profileName);
   } catch (err) {
-    return { error: String(err), status: 404 };
+    return { error: formatErrorForLog(err), status: 404 };
   }
 }
 

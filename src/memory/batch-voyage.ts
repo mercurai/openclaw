@@ -1,6 +1,7 @@
 import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
 import type { VoyageEmbeddingClient } from "./embeddings-voyage.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { retryAsync } from "../infra/retry.js";
 import { hashText, runWithConcurrency } from "./internal.js";
 
@@ -188,7 +189,7 @@ async function readVoyageBatchError(params: {
         : undefined);
     return message;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     return message ? `error file unavailable: ${message}` : undefined;
   }
 }

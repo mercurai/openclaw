@@ -5,6 +5,7 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveBrewExecutable } from "../infra/brew.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { scanDirectoryWithSummary } from "../security/skill-scanner.js";
@@ -315,7 +316,7 @@ async function installDownloadSpec(params: {
     const result = await downloadFile(url, archivePath, timeoutMs);
     downloaded = result.bytes;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = formatErrorForUser(err);
     return { ok: false, message, stdout: "", stderr: message, code: null };
   }
 
@@ -552,7 +553,7 @@ export async function installSkill(params: SkillInstallRequest): Promise<SkillIn
         env,
       });
     } catch (err) {
-      const stderr = err instanceof Error ? err.message : String(err);
+      const stderr = formatErrorForUser(err);
       return { code: null, stdout: "", stderr };
     }
   })();

@@ -9,6 +9,7 @@ import {
   resolveStateDir,
 } from "../config/config.js";
 import { resolveGatewayService } from "../daemon/service.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { stylePromptHint, stylePromptMessage, stylePromptTitle } from "../terminal/prompt-style.js";
 import {
   collectWorkspaceDirs,
@@ -44,7 +45,7 @@ async function stopGatewayIfRunning(runtime: RuntimeEnv) {
   try {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
-    runtime.error(`Gateway service check failed: ${String(err)}`);
+    runtime.error(`Gateway service check failed: ${formatErrorForLog(err)}`);
     return;
   }
   if (!loaded) {
@@ -53,7 +54,7 @@ async function stopGatewayIfRunning(runtime: RuntimeEnv) {
   try {
     await service.stop({ env: process.env, stdout: process.stdout });
   } catch (err) {
-    runtime.error(`Gateway stop failed: ${String(err)}`);
+    runtime.error(`Gateway stop failed: ${formatErrorForLog(err)}`);
   }
 }
 

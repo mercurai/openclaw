@@ -5,6 +5,7 @@ import { createInboundDebouncer } from "../../auto-reply/inbound-debounce.js";
 import { formatLocationText } from "../../channels/location.js";
 import { logVerbose, shouldLogVerbose } from "../../globals.js";
 import { recordChannelActivity } from "../../infra/channel-activity.js";
+import { formatErrorForLog } from "../../infra/errors/index.js";
 import { getChildLogger } from "../../logging/logger.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { saveMediaBuffer } from "../../media/store.js";
@@ -62,7 +63,7 @@ export async function monitorWebInbox(options: {
       logVerbose("Sent global 'available' presence on connect");
     }
   } catch (err) {
-    logVerbose(`Failed to send 'available' presence on connect: ${String(err)}`);
+    logVerbose(`Failed to send 'available' presence on connect: ${formatErrorForLog(err)}`);
   }
 
   const selfJid = sock.user?.id;
@@ -108,8 +109,8 @@ export async function monitorWebInbox(options: {
       await options.onMessage(combinedMessage);
     },
     onError: (err) => {
-      inboundLogger.error({ error: String(err) }, "failed handling inbound web message");
-      inboundConsoleLog.error(`Failed handling inbound web message: ${String(err)}`);
+      inboundLogger.error({ error: formatErrorForLog(err) }, "failed handling inbound web message");
+      inboundConsoleLog.error(`Failed handling inbound web message: ${formatErrorForLog(err)}`);
     },
   });
   const groupMetaCache = new Map<
@@ -146,7 +147,7 @@ export async function monitorWebInbox(options: {
       groupMetaCache.set(jid, entry);
       return entry;
     } catch (err) {
-      logVerbose(`Failed to fetch group metadata for ${jid}: ${String(err)}`);
+      logVerbose(`Failed to fetch group metadata for ${jid}: ${formatErrorForLog(err)}`);
       return { expires: Date.now() + GROUP_META_TTL_MS };
     }
   };
@@ -225,7 +226,7 @@ export async function monitorWebInbox(options: {
             logVerbose(`Marked message ${id} as read for ${remoteJid}${suffix}`);
           }
         } catch (err) {
-          logVerbose(`Failed to mark message ${id} read: ${String(err)}`);
+          logVerbose(`Failed to mark message ${id} read: ${formatErrorForLog(err)}`);
         }
       } else if (id && access.isSelfChat && shouldLogVerbose()) {
         // Self-chat mode: never auto-send read receipts (blue ticks) on behalf of the owner.
@@ -274,7 +275,7 @@ export async function monitorWebInbox(options: {
           mediaFileName = inboundMedia.fileName;
         }
       } catch (err) {
-        logVerbose(`Inbound media download failed: ${String(err)}`);
+        logVerbose(`Inbound media download failed: ${formatErrorForLog(err)}`);
       }
 
       const chatJid = remoteJid;
@@ -282,7 +283,7 @@ export async function monitorWebInbox(options: {
         try {
           await sock.sendPresenceUpdate("composing", chatJid);
         } catch (err) {
-          logVerbose(`Presence update failed: ${String(err)}`);
+          logVerbose(`Presence update failed: ${formatErrorForLog(err)}`);
         }
       };
       const reply = async (text: string) => {
@@ -334,12 +335,18 @@ export async function monitorWebInbox(options: {
       try {
         const task = Promise.resolve(debouncer.enqueue(inboundMessage));
         void task.catch((err) => {
-          inboundLogger.error({ error: String(err) }, "failed handling inbound web message");
-          inboundConsoleLog.error(`Failed handling inbound web message: ${String(err)}`);
+          inboundLogger.error(
+            { error: formatErrorForLog(err) },
+            "failed handling inbound web message",
+          );
+          inboundConsoleLog.error(`Failed handling inbound web message: ${formatErrorForLog(err)}`);
         });
       } catch (err) {
-        inboundLogger.error({ error: String(err) }, "failed handling inbound web message");
-        inboundConsoleLog.error(`Failed handling inbound web message: ${String(err)}`);
+        inboundLogger.error(
+          { error: formatErrorForLog(err) },
+          "failed handling inbound web message",
+        );
+        inboundConsoleLog.error(`Failed handling inbound web message: ${formatErrorForLog(err)}`);
       }
     }
   };
@@ -358,7 +365,7 @@ export async function monitorWebInbox(options: {
         });
       }
     } catch (err) {
-      inboundLogger.error({ error: String(err) }, "connection.update handler error");
+      inboundLogger.error({ error: formatErrorForLog(err) }, "connection.update handler error");
       resolveClose({ status: undefined, isLoggedOut: false, error: err });
     }
   };
@@ -394,7 +401,7 @@ export async function monitorWebInbox(options: {
         }
         sock.ws?.close();
       } catch (err) {
-        logVerbose(`Socket close failed: ${String(err)}`);
+        logVerbose(`Socket close failed: ${formatErrorForLog(err)}`);
       }
     },
     onClose,

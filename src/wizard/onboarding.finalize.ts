@@ -28,6 +28,7 @@ import {
 import { resolveGatewayService } from "../daemon/service.js";
 import { isSystemdUserServiceAvailable } from "../daemon/systemd.js";
 import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
+import { formatErrorForUser } from "../infra/errors/index.js";
 import { restoreTerminalState } from "../terminal/restore.js";
 import { runTui } from "../tui/tui.js";
 import { resolveUserPath } from "../utils.js";
@@ -182,7 +183,7 @@ export async function finalizeOnboardingWizard(
           environment,
         });
       } catch (err) {
-        installError = err instanceof Error ? err.message : String(err);
+        installError = formatErrorForUser(err);
       } finally {
         progress.stop(
           installError ? "Gateway service install failed." : "Gateway service installed.",

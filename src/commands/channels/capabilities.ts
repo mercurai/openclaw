@@ -5,6 +5,7 @@ import { getChannelPlugin, listChannelPlugins } from "../../channels/plugins/ind
 import { fetchChannelPermissionsDiscord } from "../../discord/send.js";
 import { parseDiscordTarget } from "../../discord/targets.js";
 import { danger } from "../../globals.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
 import { fetchSlackScopes, type SlackScopesResult } from "../../slack/scopes.js";
 import { theme } from "../../terminal/theme.js";
@@ -329,7 +330,7 @@ async function buildDiscordPermissions(params: {
       target,
       report: {
         channelId: target.channelId,
-        error: err instanceof Error ? err.message : String(err),
+        error: formatErrorForUser(err),
       },
     };
   }
@@ -374,7 +375,7 @@ async function resolveChannelReports(params: {
           cfg,
         });
       } catch (err) {
-        probe = { ok: false, error: err instanceof Error ? err.message : String(err) };
+        probe = { ok: false, error: formatErrorForUser(err) };
       }
     }
 

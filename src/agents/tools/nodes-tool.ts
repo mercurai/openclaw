@@ -16,6 +16,7 @@ import {
   writeScreenRecordToFile,
 } from "../../cli/nodes-screen.js";
 import { parseDurationMs } from "../../cli/parse-duration.js";
+import { formatErrorForUser } from "../../infra/errors/index.js";
 import { imageMimeFromFormat } from "../../media/mime.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
 import { optionalStringEnum, stringEnum } from "../schema/typebox.js";
@@ -453,7 +454,7 @@ export function createNodesTool(options?: {
               try {
                 invokeParams = JSON.parse(invokeParamsJson);
               } catch (err) {
-                const message = err instanceof Error ? err.message : String(err);
+                const message = formatErrorForUser(err);
                 throw new Error(`invokeParamsJson must be valid JSON: ${message}`, {
                   cause: err,
                 });
@@ -480,7 +481,7 @@ export function createNodesTool(options?: {
             ? gatewayOpts.gatewayUrl.trim()
             : "default";
         const agentLabel = agentId ?? "unknown";
-        const message = err instanceof Error ? err.message : String(err);
+        const message = formatErrorForUser(err);
         throw new Error(
           `agent=${agentLabel} node=${nodeLabel} gateway=${gatewayLabel} action=${action}: ${message}`,
           { cause: err },

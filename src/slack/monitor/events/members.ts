@@ -2,6 +2,7 @@ import type { SlackEventMiddlewareArgs } from "@slack/bolt";
 import type { SlackMonitorContext } from "../context.js";
 import type { SlackMemberChannelEvent } from "../types.js";
 import { danger } from "../../../globals.js";
+import { formatErrorForLog } from "../../../infra/errors/index.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { resolveSlackChannelLabel } from "../channel-config.js";
 
@@ -43,7 +44,7 @@ export function registerSlackMemberEvents(params: { ctx: SlackMonitorContext }) 
           contextKey: `slack:member:joined:${channelId ?? "unknown"}:${payload.user ?? "unknown"}`,
         });
       } catch (err) {
-        ctx.runtime.error?.(danger(`slack join handler failed: ${String(err)}`));
+        ctx.runtime.error?.(danger(`slack join handler failed: ${formatErrorForLog(err)}`));
       }
     },
   );
@@ -83,7 +84,7 @@ export function registerSlackMemberEvents(params: { ctx: SlackMonitorContext }) 
           contextKey: `slack:member:left:${channelId ?? "unknown"}:${payload.user ?? "unknown"}`,
         });
       } catch (err) {
-        ctx.runtime.error?.(danger(`slack leave handler failed: ${String(err)}`));
+        ctx.runtime.error?.(danger(`slack leave handler failed: ${formatErrorForLog(err)}`));
       }
     },
   );

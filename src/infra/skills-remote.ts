@@ -5,6 +5,7 @@ import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent
 import { loadWorkspaceSkillEntries } from "../agents/skills.js";
 import { bumpSkillsSnapshotVersion } from "../agents/skills/refresh.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { formatErrorForLog } from "./errors/index.js";
 import { listNodePairing, updatePairedNodeMetadata } from "./node-pairing.js";
 
 type RemoteNodeRecord = {
@@ -149,7 +150,7 @@ export async function primeRemoteSkillsCache() {
       bumpSkillsSnapshotVersion({ reason: "remote-node" });
     }
   } catch (err) {
-    log.warn(`failed to prime remote skills cache: ${String(err)}`);
+    log.warn(`failed to prime remote skills cache: ${formatErrorForLog(err)}`);
   }
 }
 

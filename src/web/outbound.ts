@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { loadConfig } from "../config/config.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
+import { ChannelError, errorLogContext } from "../infra/errors/index.js";
 import { getChildLogger } from "../logging/logger.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { convertMarkdownTables } from "../markdown/tables.js";
@@ -85,11 +86,9 @@ export async function sendMessageWhatsApp(
     logger.info({ jid, messageId }, "sent message");
     return { messageId, toJid: jid };
   } catch (err) {
-    logger.error(
-      { err: String(err), to, hasMedia: Boolean(options.mediaUrl) },
-      "failed to send via web session",
-    );
-    throw err;
+    const channelErr = ChannelError.sendFailed("whatsapp", to, err);
+    logger.error(errorLogContext(channelErr), "failed to send via web session");
+    throw channelErr;
   }
 }
 
@@ -126,11 +125,9 @@ export async function sendReactionWhatsApp(
     outboundLog.info(`Sent reaction "${emoji}" -> message ${messageId}`);
     logger.info({ chatJid: jid, messageId, emoji }, "sent reaction");
   } catch (err) {
-    logger.error(
-      { err: String(err), chatJid, messageId, emoji },
-      "failed to send reaction via web session",
-    );
-    throw err;
+    const channelErr = ChannelError.sendFailed("whatsapp", chatJid, err);
+    logger.error(errorLogContext(channelErr), "failed to send reaction via web session");
+    throw channelErr;
   }
 }
 
@@ -167,10 +164,8 @@ export async function sendPollWhatsApp(
     logger.info({ jid, messageId }, "sent poll");
     return { messageId, toJid: jid };
   } catch (err) {
-    logger.error(
-      { err: String(err), to, question: poll.question },
-      "failed to send poll via web session",
-    );
-    throw err;
+    const channelErr = ChannelError.sendFailed("whatsapp", to, err);
+    logger.error(errorLogContext(channelErr), "failed to send poll via web session");
+    throw channelErr;
   }
 }

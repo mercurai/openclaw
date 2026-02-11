@@ -2,6 +2,7 @@ import type { Server } from "node:http";
 import express from "express";
 import type { BrowserRouteRegistrar } from "./routes/types.js";
 import { loadConfig } from "../config/config.js";
+import { formatErrorForLog } from "../infra/errors/index.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveBrowserConfig, resolveProfile } from "./config.js";
 import { ensureChromeExtensionRelayServer } from "./extension-relay.js";
@@ -89,7 +90,7 @@ export async function stopBrowserControlServer(): Promise<void> {
       }
     }
   } catch (err) {
-    logServer.warn(`openclaw browser stop failed: ${String(err)}`);
+    logServer.warn(`openclaw browser stop failed: ${formatErrorForLog(err)}`);
   }
 
   if (current.server) {
